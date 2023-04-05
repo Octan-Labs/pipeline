@@ -1,5 +1,5 @@
 version: "3.7"
-name: octan-pipeline-poc
+name: historical-indexer
 
 networks:
   redpanda_network:
@@ -57,51 +57,6 @@ services:
       - 18082:18082
       - 19092:19092
       - 19644:9644
-  console:
-    container_name: redpanda-console
-    image: docker.redpanda.com/vectorized/console:v2.2.3
-    networks:
-      - redpanda_network
-    entrypoint: /bin/sh
-    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
-    environment: 
-      CONFIG_FILEPATH: /tmp/config.yml
-      CONSOLE_CONFIG_FILE: |
-        kafka:
-          brokers: ["redpanda-0:9092"]
-          schemaRegistry:
-            enabled: true
-            urls: ["http://redpanda-0:8081"]
-        redpanda:
-          adminApi:
-            enabled: true
-            urls: ["http://redpanda-0:9644"]
-    ports:
-      - 8080:8080
-    depends_on:
-      - redpanda-0
-
-  spark-iceberg:
-    image: tabulario/spark-iceberg
-    container_name: spark-iceberg
-    build: spark/
-    networks:
-      redpanda_network:
-    depends_on:
-      - rest
-      - minio
-    volumes:
-      - ./warehouse:/home/iceberg/warehouse
-      - ./notebooks:/home/iceberg/notebooks/notebooks
-    environment:
-      - AWS_ACCESS_KEY_ID=admin
-      - AWS_SECRET_ACCESS_KEY=password
-      - AWS_REGION=us-east-1
-    ports:
-      - 8888:8888
-      - 8080:8080
-      - 10000:10000
-      - 10001:10001
       
   indexer-streaming:
     container_name: indexer-streaming
@@ -113,3 +68,24 @@ services:
     command: stream -e contract,transaction,token_transfer --provider-uri http://52.220.158.144:8545 --start-block 10000000 --output=kafka/redpanda-0:9092
     depends_on:
       - redpanda-0
+
+  spark-iceberg:
+    image: tabulario/spark-iceberg
+    container_name: spark-iceberg
+    build: spark/
+    networks:
+      redpanda_network:
+    volumes:
+      - ./warehouse:/home/iceberg/warehouse
+      - ./notebooks:/home/iceberg/notebooks/notebooks
+    depends_on:
+      - redpanda-0
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=ap-southeast-1
+    ports:
+      - 8888:8888
+      - 8080:8080
+      - 10000:10000
+      - 10001:10001
