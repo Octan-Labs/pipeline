@@ -1,0 +1,14 @@
+language: python
+dist: xenial
+matrix:
+  include:
+    - python: "3.7.2"
+      env: TOX_POSARGS="-e py37"
+    - python: "3.8"
+      env: TOX_POSARGS="-e py38"
+    - python: "3.9"
+      env: TOX_POSARGS="-e py39"
+install:
+  - travis_retry pip install tox
+script:
+  - travis_wait tox $TOX_POSARGS
