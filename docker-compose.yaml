@@ -8,87 +8,26 @@ services:
   spark-iceberg:
     image: spark-iceberg
     container_name: spark-iceberg
-    build: docker/spark
+    build: docker/spark-iceberg
     networks:
       octan-pipeline-poc:
-    depends_on:
-      - postgres
-      - minio
     volumes:
       - ./warehouse:/home/iceberg/warehouse
       - ./notebooks:/home/iceberg/notebooks/notebooks
-    environment:
-      - AWS_ACCESS_KEY_ID=admin
-      - AWS_SECRET_ACCESS_KEY=password
-      - AWS_REGION=us-east-1
     ports:
       - 8888:8888
       - 8080:8080
       - 10000:10000
       - 10001:10001
 
-  postgres:
-    container_name: postgres_container
-    image: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      PGDATA: /data/postgres
-    volumes:
-       - ./postgres:/data/postgres
-    ports:
-      - "5432:5432"
+  exporter:
+    container_name: exporter
+    image: evm-etl
+    build: indexer/
+    depends_on:
+      - spark-iceberg
     networks:
       - octan-pipeline-poc
-    restart: unless-stopped
-
-  minio:
-    image: minio/minio
-    container_name: minio
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password
-      - MINIO_DOMAIN=minio
     volumes:
-      - ./minio:/data
-    networks:
-      octan-pipeline-poc:
-        aliases:
-          - demo.minio
-          - bsc.minio
-    ports:
-      - 9001:9001
-      - 9000:9000
-    command: ["server", "/data", "--console-address", ":9001"]
-
-  mc:
-    depends_on:
-      - minio
-    image: minio/mc
-    container_name: mc
-    networks:
-      octan-pipeline-poc:
-    environment:
-      - AWS_ACCESS_KEY_ID=admin
-      - AWS_SECRET_ACCESS_KEY=password
-      - AWS_REGION=us-east-1
-    entrypoint: >
-      /bin/sh -c "
-      until (/usr/bin/mc config host add minio http://minio:9000 admin password) do echo '...waiting...' && sleep 1; done;
-      /usr/bin/mc mb minio/bsc;
-      /usr/bin/mc policy set public minio/bsc;
-      /usr/bin/mc mb minio/demo;
-      /usr/bin/mc policy set public minio/demo;
-      tail -f /dev/null
-      "
-
-  # indexer-streaming:
-  #   container_name: indexer-streaming
-  #   image: ethereum-etl:latest
-  #   networks:
-  #     - redpanda_network
-  #   volumes:
-  #     - indexer-streaming:/ethereum-etl/
-  #   command: stream -e contract,transaction,token_transfer --provider-uri http://52.220.158.144:8545 --start-block 10000000 --output=kafka/redpanda-0:9092
-  #   depends_on:
-  #     - redpanda-0
+      - ./warehouse:/ethereumetl/warehouse
+    command: export_all -s 0 -e 5999 --provider-uri http://52.220.158.144:8545 -o /ethereumetl/warehouse
