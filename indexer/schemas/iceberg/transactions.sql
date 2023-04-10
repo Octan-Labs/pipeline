@@ -15,4 +15,4 @@ CREATE EXTERNAL TABLE IF NOT EXISTS demo.bsc.transactions (
     max_priority_fee_per_gas LONG,
     transaction_type LONG
 )
-PARTITIONED BY (truncate(1000, block_number), days(block_timestamp), from_address, to_address, transaction_type)
+PARTITIONED BY (truncate(10000, block_number))
