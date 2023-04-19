@@ -67,7 +67,12 @@ RUN wget https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.20.18/bu
 
 RUN wget https://repo1.maven.org/maven2/software/amazon/awssdk/url-connection-client/2.20.18/url-connection-client-2.20.18.jar; \
     mv url-connection-client-2.20.18.jar /opt/spark/jars/;
- 
+
+COPY graphframes-assembly-0.8.3-SNAPSHOT-spark3.3.jar /opt/spark/jars/;
+
+COPY graphframes.zip /opt/spark/python/dist/graphframes.zip
+RUN echo "export PYTHONPATH=\$PYTHONPATH:/opt/spark/python/dist/graphframes.zip" > /opt/spark/conf/spark-env.sh
+
 COPY entrypoint.sh /opt/
 ENV SPARK_HOME /opt/spark
 WORKDIR /opt/spark/work-dir

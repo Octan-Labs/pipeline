@@ -12,7 +12,7 @@ generate_database_config(){
 </property>
 <property>
   <name>javax.jdo.option.ConnectionURL</name>
-  <value>jdbc:${DATABASE_TYPE_JDBC}://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DB}</value>
+  <value>jdbc:${DATABASE_TYPE_JDBC}://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DB}?useSSL=false</value>
 </property>
 <property>
   <name>javax.jdo.option.ConnectionUserName</name>
@@ -110,23 +110,10 @@ generate_core_site_config(){
 XML
 }
 
-# Make sure mysql is ready
-MAX_TRIES=8
-CURRENT_TRY=1
-SLEEP_BETWEEN_TRY=4
-until [ "$(telnet mysql 3306 | sed -n 2p)" = "Connected to mysql." ] || [ "$CURRENT_TRY" -gt "$MAX_TRIES" ]; do
-    echo "Waiting for mysql server..."
-    sleep "$SLEEP_BETWEEN_TRY"
-    CURRENT_TRY=$((CURRENT_TRY + 1))
-done
 
-if [ "$CURRENT_TRY" -gt "$MAX_TRIES" ]; then
-  echo "WARNING: Timeout when waiting for mysql."
-fi
-
-# 
 generate_hive_site_config ${HADOOP_HOME}/etc/hadoop/hive-site.xml
-${HIVE_HOME}/bin/schematool -dbType ${DATABASE_TYPE_JDBC} -info 
+${HIVE_HOME}/bin/schematool -validate -dbType ${DATABASE_TYPE_JDBC} 
+
 # Run migration
 if [ $? -eq 1 ]; then
   echo "Getting schema info failed. Probably not initialized. Initializing..."
