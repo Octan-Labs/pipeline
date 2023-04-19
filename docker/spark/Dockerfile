@@ -9,6 +9,7 @@ RUN set -ex && \
     apt install -y python3 python3-pip && \
     mkdir -p /opt/spark && \
     mkdir /opt/spark/python && \
+    mkdir /opt/spark/conf && \
     mkdir -p /opt/spark/examples && \
     mkdir -p /opt/spark/work-dir && \
     touch /opt/spark/RELEASE && \
