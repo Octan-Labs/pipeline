@@ -112,17 +112,9 @@ XML
 
 
 generate_hive_site_config ${HADOOP_HOME}/etc/hadoop/hive-site.xml
-${HIVE_HOME}/bin/schematool -validate -dbType ${DATABASE_TYPE_JDBC} 
-
-# Run migration
-if [ $? -eq 1 ]; then
-  echo "Getting schema info failed. Probably not initialized. Initializing..."
-  ${HIVE_HOME}/bin/schematool -initSchema -dbType ${DATABASE_TYPE_JDBC}
-fi
+${HIVE_HOME}/bin/schematool -validate -dbType ${DATABASE_TYPE_JDBC} --verbose || ${HIVE_HOME}/bin/schematool -initSchema -dbType ${DATABASE_TYPE_JDBC} --verbose
 
 # configure & start metastore (in foreground)
 generate_metastore_site_config ${HIVE_HOME}/conf/metastore-site.xml
 generate_core_site_config ${HADOOP_HOME}/etc/hadoop/core-site.xml
-
-echo "Starting hive metastore ..."
 ${HIVE_HOME}/bin/start-metastore

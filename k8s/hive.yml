@@ -17,6 +17,17 @@ spec:
     spec:
       containers:
         - name: hive-metastore
-          image: trmaphi/hive-metastore:3.3.0-
-          ports:
+        - image: trmaphi/hive-metastore:3.0.0-3.2.0-mysql
+        - ports:
             - containerPort: 9083
+        - env:
+            - name: DATABASE_HOST
+              value: admin
+            - name: DATABASE_DB
+              value: metastore_db
+            - name: DATABASE_USER
+              value: admin
+            - name: DATABASE_PASSWORD
+              value: admin
+            - name: S3_PREFIX
+              value: warehouse
