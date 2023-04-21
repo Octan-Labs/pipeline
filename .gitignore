@@ -1,2 +1,4 @@
 volumes/**/*
 spark-3.3.2-bin-hadoop3/**/*
+.vscode/**/*
+.metals/**/*

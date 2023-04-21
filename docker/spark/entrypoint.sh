@@ -1,5 +1,5 @@
 #!/bin/bash
- Check whether there is a passwd entry for the container UID
+# Check whether there is a passwd entry for the container UID
 myuid=$(id -u)
 mygid=$(id -g)
 # turn off -e for getent because it will return error code in anonymous uid case

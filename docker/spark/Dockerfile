@@ -9,7 +9,6 @@ RUN set -ex && \
     apt install -y python3 python3-pip && \
     mkdir -p /opt/spark && \
     mkdir /opt/spark/python && \
-    mkdir /opt/spark/conf && \
     mkdir -p /opt/spark/examples && \
     mkdir -p /opt/spark/work-dir && \
     touch /opt/spark/RELEASE && \
@@ -69,10 +68,11 @@ RUN wget https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.20.18/bu
 RUN wget https://repo1.maven.org/maven2/software/amazon/awssdk/url-connection-client/2.20.18/url-connection-client-2.20.18.jar; \
     mv url-connection-client-2.20.18.jar /opt/spark/jars/;
 
-COPY graphframes-assembly-0.8.3-SNAPSHOT-spark3.3.jar /opt/spark/jars/;
+COPY graphframes-assembly-0.8.3-SNAPSHOT-spark3.3.jar /opt/spark/jars/graphframes-assembly-0.8.3-SNAPSHOT-spark3.3.jar
 
-COPY graphframes.zip /opt/spark/python/dist/graphframes.zip
-RUN echo "export PYTHONPATH=\$PYTHONPATH:/opt/spark/python/dist/graphframes.zip" > /opt/spark/conf/spark-env.sh
+COPY python /opt/spark/python/lib/graphframes
+RUN pip install -r /opt/spark/python/lib/graphframes/requirements.txt
+ENV PYTHONPATH=/opt/spark/python/lib/graphframes:${PYTHONPATH}
 
 COPY entrypoint.sh /opt/
 ENV SPARK_HOME /opt/spark

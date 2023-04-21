@@ -22,6 +22,12 @@ services:
       - MYSQL_DATABASE=metastore_db
     ports:
       - 3306:3306
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
 
   minio:
     image: minio/minio
@@ -40,15 +46,20 @@ services:
       - MINIO_SECRET_KEY=secretkey
     entrypoint: sh
     command: -c 'mkdir -p /data/warehouse && mkdir -p /data/metastore && mkdir -p /data/logs && minio server /data'
-    deploy:
-      restart_policy:
-        condition: on-failure
+    healthcheck:
+      test: curl -I 127.0.0.1:9000/minio/health/live
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
 
   hive-metastore:
     build: ./docker/hive-metastore
     image: hive-metastore:latest
     networks:
       octan-pipeline-poc:
+        aliases:
+          - hive-metastore
     ports:
       - 9083:9083
     environment:
@@ -65,8 +76,10 @@ services:
       - AWS_ACCESS_KEY_ID=accesskey
       - AWS_SECRET_ACCESS_KEY=secretkey
     depends_on:
-      - minio
-      - mysql
+      minio:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
 
   spark-iceberg:
     build: ./docker/spark-iceberg
