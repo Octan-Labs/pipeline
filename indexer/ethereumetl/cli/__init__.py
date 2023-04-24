@@ -45,7 +45,7 @@ from ethereumetl.cli.get_block_range_for_date import get_block_range_for_date
 from ethereumetl.cli.get_block_range_for_timestamps import get_block_range_for_timestamps
 from ethereumetl.cli.get_keccak_hash import get_keccak_hash
 from ethereumetl.cli.stream import stream
-
+from ethereumetl.cli.export_custom import export_custom
 
 @click.group()
 @click.version_option(version='2.1.1')
@@ -79,3 +79,6 @@ cli.add_command(get_keccak_hash, "get_keccak_hash")
 cli.add_command(extract_csv_column, "extract_csv_column")
 cli.add_command(filter_items, "filter_items")
 cli.add_command(extract_field, "extract_field")
+
+# custom
+cli.add_command(export_custom, "export_custom")

@@ -14,31 +14,33 @@ ENV DATABASE_PORT=3306
 
 RUN \
   echo "Install OS dependencies" && \
-    build_deps="curl" && \
-    apt-get update -y && \
-    apt-get install -y $build_deps --no-install-recommends
+  build_deps="curl" && \
+  apt-get update -y && \
+  apt-get install -y $build_deps --no-install-recommends
 
 RUN \
   echo "Download hadoop common jars" && \
-    curl -L https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf -
+  curl -L https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf -
 
 RUN \
   echo "Download and install the standalone metastore binary" && \
-    curl -L https://downloads.apache.org/hive/hive-standalone-metastore-${HIVE_METASTORE_VERSION}/hive-standalone-metastore-${HIVE_METASTORE_VERSION}-bin.tar.gz | tar zxf -
+  curl -L https://downloads.apache.org/hive/hive-standalone-metastore-${HIVE_METASTORE_VERSION}/hive-standalone-metastore-${HIVE_METASTORE_VERSION}-bin.tar.gz | tar zxf -
 
 RUN \
-    echo "Download and install the database connector" && \
-    curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar -o mysql-connector-java-5.1.49.jar && \
-    cp mysql-connector-java-5.1.49.jar ${HIVE_HOME}/lib/ && \
-    rm -rf mysql-connector-java-5.1.49
+  echo "Download and install the database connector" && \
+  curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar -o mysql-connector-java-5.1.49.jar && \
+  cp mysql-connector-java-5.1.49.jar ${HIVE_HOME}/lib/ && \
+  rm -rf mysql-connector-java-5.1.49
 
 RUN \
   echo "Purge build artifacts" && \
-    apt-get purge -y --auto-remove $build_deps && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get purge -y --auto-remove $build_deps && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /entrypoint.sh
 EXPOSE 9083
+
+RUN chmod a+x /entrypoint.sh
 
 ENTRYPOINT ["sh", "-c", "/entrypoint.sh"]

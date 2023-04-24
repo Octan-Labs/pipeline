@@ -110,6 +110,14 @@ services:
   #     - spark-iceberg
   #   networks:
   #     - octan-pipeline-poc
+  #   environment:
+  #     - START_BLOCK=41000001
+  #     - END_BLOCK=41700000
+  #     - PROVIDER_URI=https://polygon-mainnet.blastapi.io/676c6275-329f-4b1c-84f2-130d1ec8afe7
+  #     - OUTPUT_DIR=/ethereumetl/output
+  #     - PARTITION_BATCH_SIZE=100000
+  #     - MAX_WORKERS=1
+  #     - EXPORT_BATCH_SIZE=2
   #   volumes:
   #     - ./warehouse:/ethereumetl/warehouse
   #   command: export_all -s 0 -e 5999 --provider-uri http://52.220.158.144:8545 -o /ethereumetl/warehouse
