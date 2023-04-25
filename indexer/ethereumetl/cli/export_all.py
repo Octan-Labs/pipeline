@@ -24,6 +24,7 @@
 import click
 import re
 
+from os import environ
 from datetime import datetime, timedelta
 
 from blockchainetl.logging_utils import logging_basic_config
@@ -92,8 +93,8 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
             if batch_end_block > end_block:
                 batch_end_block = end_block
 
-            padded_batch_start_block = str(batch_start_block).zfill(8)
-            padded_batch_end_block = str(batch_end_block).zfill(8)
+            padded_batch_start_block = str(batch_start_block).zfill(10)
+            padded_batch_end_block = str(batch_end_block).zfill(10)
             partition_dir = '/start_block={padded_batch_start_block}/end_block={padded_batch_end_block}'.format(
                 padded_batch_start_block=padded_batch_start_block,
                 padded_batch_end_block=padded_batch_end_block,
@@ -105,16 +106,16 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('-s', '--start', required=True, type=str, help='Start block/ISO date/Unix time')
-@click.option('-e', '--end', required=True, type=str, help='End block/ISO date/Unix time')
-@click.option('-b', '--partition-batch-size', default=10000, show_default=True, type=int,
+@click.option('-s', '--start', required=True, type=str, default=lambda: environ.get("START_BLOCK"), help='Start block/ISO date/Unix time')
+@click.option('-e', '--end', required=True, type=str, default=lambda: environ.get("END_BLOCK"), help='End block/ISO date/Unix time')
+@click.option('-b', '--partition-batch-size', default=lambda: environ.get("PARTITION_BATCH_SIZE", 10000), show_default=True, type=int,
               help='The number of blocks to export in partition.')
-@click.option('-p', '--provider-uri', default='https://mainnet.infura.io', show_default=True, type=str,
+@click.option('-p', '--provider-uri', default=lambda: environ.get("PROVIDER_URI", 'https://mainnet.infura.io'), show_default=True, type=str,
               help='The URI of the web3 provider e.g. '
                    'file://$HOME/Library/Ethereum/geth.ipc or https://mainnet.infura.io')
-@click.option('-o', '--output-dir', default='output', show_default=True, type=str, help='Output directory, partitioned in Hive style.')
-@click.option('-w', '--max-workers', default=5, show_default=True, type=int, help='The maximum number of workers.')
-@click.option('-B', '--export-batch-size', default=100, show_default=True, type=int, help='The number of requests in JSON RPC batches.')
+@click.option('-o', '--output-dir', default=lambda: environ.get("OUTPUT_DIR", 'output'), show_default=True, type=str, help='Output directory, partitioned in Hive style.')
+@click.option('-w', '--max-workers', default=lambda: environ.get("MAX_WORKERS", 5), show_default=True, type=int, help='The maximum number of workers.')
+@click.option('-B', '--export-batch-size', default=lambda: environ.get("EXPORT_BATCH_SIZE", 100), show_default=True, type=int, help='The number of requests in JSON RPC batches.')
 @click.option('-c', '--chain', default='ethereum', show_default=True, type=str, help='The chain network to connect to.')
 def export_all(start, end, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size,
                chain='ethereum'):
