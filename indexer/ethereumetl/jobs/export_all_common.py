@@ -23,22 +23,24 @@
 
 import csv
 import logging
-import os
-import shutil
 from time import time
 
 from ethereumetl.csv_utils import set_max_field_size_limit
-from blockchainetl.file_utils import smart_open
+from blockchainetl.file_utils import smart_open, rm
+from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_contracts_job import ExportContractsJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_token_transfers_job import ExportTokenTransfersJob
 from ethereumetl.jobs.export_tokens_job import ExportTokensJob
+from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.exporters.blocks_and_transactions_item_exporter import blocks_and_transactions_item_exporter
 from ethereumetl.jobs.exporters.contracts_item_exporter import contracts_item_exporter
 from ethereumetl.jobs.exporters.receipts_and_logs_item_exporter import receipts_and_logs_item_exporter
 from ethereumetl.jobs.exporters.token_transfers_item_exporter import token_transfers_item_exporter
 from ethereumetl.jobs.exporters.tokens_item_exporter import tokens_item_exporter
+from ethereumetl.jobs.exporters.traces_item_exporter import traces_item_exporter
+from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.web3_utils import build_web3
@@ -63,8 +65,7 @@ def extract_csv_column_unique(input, output, column):
             output_file.write(row[column] + '\n')
 
 
-def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_size):
-
+def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_size, chain, export_traces):
     for batch_start_block, batch_end_block, partition_dir in partitions:
         # # # start # # #
 
@@ -87,13 +88,11 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
             output_dir=output_dir,
             partition_dir=partition_dir,
         )
-        os.makedirs(os.path.dirname(blocks_output_dir), exist_ok=True)
 
         transactions_output_dir = '{output_dir}/transactions{partition_dir}'.format(
             output_dir=output_dir,
             partition_dir=partition_dir,
         )
-        os.makedirs(os.path.dirname(transactions_output_dir), exist_ok=True)
 
         blocks_file = '{blocks_output_dir}/blocks_{file_name_suffix}.csv'.format(
             blocks_output_dir=blocks_output_dir,
@@ -131,7 +130,6 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
                 output_dir=output_dir,
                 partition_dir=partition_dir,
             )
-            os.makedirs(os.path.dirname(token_transfers_output_dir), exist_ok=True)
 
             token_transfers_file = '{token_transfers_output_dir}/token_transfers_{file_name_suffix}.csv'.format(
                 token_transfers_output_dir=token_transfers_output_dir,
@@ -157,7 +155,6 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
             output_dir=output_dir,
             partition_dir=partition_dir,
         )
-        os.makedirs(os.path.dirname(cache_output_dir), exist_ok=True)
 
         transaction_hashes_file = '{cache_output_dir}/transaction_hashes_{file_name_suffix}.csv'.format(
             cache_output_dir=cache_output_dir,
@@ -172,13 +169,11 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
             output_dir=output_dir,
             partition_dir=partition_dir,
         )
-        os.makedirs(os.path.dirname(receipts_output_dir), exist_ok=True)
 
         logs_output_dir = '{output_dir}/logs{partition_dir}'.format(
             output_dir=output_dir,
             partition_dir=partition_dir,
         )
-        os.makedirs(os.path.dirname(logs_output_dir), exist_ok=True)
 
         receipts_file = '{receipts_output_dir}/receipts_{file_name_suffix}.csv'.format(
             receipts_output_dir=receipts_output_dir,
@@ -205,42 +200,104 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
                 export_logs=logs_file is not None)
             job.run()
 
-        # # # contracts # # #
+        if export_traces==True:
+            traces_output_dir = '{output_dir}/traces{partition_dir}'.format(
+                output_dir=output_dir,
+                partition_dir=partition_dir,
+            )
 
-        contract_addresses_file = '{cache_output_dir}/contract_addresses_{file_name_suffix}.csv'.format(
-            cache_output_dir=cache_output_dir,
-            file_name_suffix=file_name_suffix,
-        )
-        logger.info('Extracting contract_address from receipt file {receipts_file}'.format(
-            receipts_file=receipts_file
-        ))
-        extract_csv_column_unique(receipts_file, contract_addresses_file, 'contract_address')
+            traces_file = '{traces_output_dir}/traces_{file_name_suffix}.csv'.format(
+                traces_output_dir=traces_output_dir,
+                file_name_suffix=file_name_suffix,
+            )
+            logger.info('Exporting Parity traces from blocks {block_range} to {traces_file}'.format(
+                block_range=block_range,
+                traces_file=traces_file,
+            ))
 
-        contracts_output_dir = '{output_dir}/contracts{partition_dir}'.format(
-            output_dir=output_dir,
-            partition_dir=partition_dir,
-        )
-        os.makedirs(os.path.dirname(contracts_output_dir), exist_ok=True)
+            in_memory_exporter = InMemoryItemExporter(item_types=['trace'])
 
-        contracts_file = '{contracts_output_dir}/contracts_{file_name_suffix}.csv'.format(
-            contracts_output_dir=contracts_output_dir,
-            file_name_suffix=file_name_suffix,
-        )
-        logger.info('Exporting contracts from blocks {block_range} to {contracts_file}'.format(
-            block_range=block_range,
-            contracts_file=contracts_file,
-        ))
+            include_daofork_traces = False
 
-        with smart_open(contract_addresses_file, 'r') as contract_addresses_file:
-            contract_addresses = (contract_address.strip() for contract_address in contract_addresses_file
-                                  if contract_address.strip())
-            job = ExportContractsJob(
-                contract_addresses_iterable=contract_addresses,
+            if chain == 'ethereum':
+                include_daofork_traces = True
+
+            job = ExportTracesJob(
+                start_block=batch_start_block,
+                end_block=batch_end_block,
                 batch_size=batch_size,
-                batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
-                item_exporter=contracts_item_exporter(contracts_file),
-                max_workers=max_workers)
+                web3=ThreadLocalProxy(lambda: build_web3(get_provider_from_uri(provider_uri, timeout=60))),
+                item_exporter=in_memory_exporter,
+                max_workers=max_workers,
+                include_genesis_traces=True,
+                include_daofork_traces=include_daofork_traces
+            )
+
             job.run()
+            
+            traces = in_memory_exporter.get_items('trace')
+            file_exporter = traces_item_exporter(traces_file)
+            file_exporter.open()
+            file_exporter.export_items(traces)
+            file_exporter.close()
+
+            contracts_output_dir = '{output_dir}/contracts{partition_dir}'.format(
+                output_dir=output_dir,
+                partition_dir=partition_dir,
+            )
+
+            contracts_file = '{contracts_output_dir}/contracts_{file_name_suffix}.csv'.format(
+                contracts_output_dir=contracts_output_dir,
+                file_name_suffix=file_name_suffix,
+            )
+            logger.info('Exporting contracts in Parity traces from blocks {block_range} to {contracts_file}'.format(
+                block_range=block_range,
+                contracts_file=contracts_file,
+            ))
+
+            job = ExtractContractsJob(
+                traces_iterable=traces,
+                batch_size=batch_size,
+                max_workers=max_workers,
+                item_exporter=contracts_item_exporter(contracts_file)
+            )
+            job.run()
+            
+        else:
+            # # # contracts # # #
+            contract_addresses_file = '{cache_output_dir}/contract_addresses_{file_name_suffix}.csv'.format(
+                cache_output_dir=cache_output_dir,
+                file_name_suffix=file_name_suffix,
+            )
+            logger.info('Extracting contract_address from receipt file {receipts_file}'.format(
+                receipts_file=receipts_file
+            ))
+            extract_csv_column_unique(receipts_file, contract_addresses_file, 'contract_address')
+
+            contracts_output_dir = '{output_dir}/contracts{partition_dir}'.format(
+                output_dir=output_dir,
+                partition_dir=partition_dir,
+            )
+
+            contracts_file = '{contracts_output_dir}/contracts_{file_name_suffix}.csv'.format(
+                contracts_output_dir=contracts_output_dir,
+                file_name_suffix=file_name_suffix,
+            )
+            logger.info('Exporting contracts from blocks {block_range} to {contracts_file}'.format(
+                block_range=block_range,
+                contracts_file=contracts_file,
+            ))
+
+            with smart_open(contract_addresses_file, 'r') as contract_addresses_file:
+                contract_addresses = (contract_address.strip() for contract_address in contract_addresses_file
+                                    if contract_address.strip())
+                job = ExportContractsJob(
+                    contract_addresses_iterable=contract_addresses,
+                    batch_size=batch_size,
+                    batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
+                    item_exporter=contracts_item_exporter(contracts_file),
+                    max_workers=max_workers)
+                job.run()
 
         # # # tokens # # #
 
@@ -258,7 +315,6 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
                 output_dir=output_dir,
                 partition_dir=partition_dir,
             )
-            os.makedirs(os.path.dirname(tokens_output_dir), exist_ok=True)
 
             tokens_file = '{tokens_output_dir}/tokens_{file_name_suffix}.csv'.format(
                 tokens_output_dir=tokens_output_dir,
@@ -278,7 +334,7 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
                 job.run()
 
         # # # finish # # #
-        shutil.rmtree(os.path.dirname(cache_output_dir))
+        rm(cache_output_dir)
         end_time = time()
         time_diff = round(end_time - start_time, 5)
         logger.info('Exporting blocks {block_range} took {time_diff} seconds'.format(
