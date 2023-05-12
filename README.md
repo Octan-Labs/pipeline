@@ -10,6 +10,7 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
     + export file format:
         + [X] csv
         + [X] json new line
+        + [ ] orc
         + [ ] parquet
         + [ ] iceberg (deprecated)
     + export sink:
