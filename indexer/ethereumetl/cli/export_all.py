@@ -117,9 +117,10 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
 @click.option('-w', '--max-workers', default=lambda: environ.get("MAX_WORKERS", 5), show_default=True, type=int, help='The maximum number of workers.')
 @click.option('-B', '--export-batch-size', default=lambda: environ.get("EXPORT_BATCH_SIZE", 100), show_default=True, type=int, help='The number of requests in JSON RPC batches.')
 @click.option('-c', '--chain', default='ethereum', show_default=True, type=str, help='The chain network to connect to.')
+@click.option('--export-traces', default=False, show_default=True, type=bool, help='Export Parity traces.')
 def export_all(start, end, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size,
-               chain='ethereum'):
+               chain='ethereum', export_traces=False):
     """Exports all data for a range of blocks."""
     provider_uri = check_classic_provider_uri(chain, provider_uri)
     export_all_common(get_partitions(start, end, partition_batch_size, provider_uri),
-                      output_dir, provider_uri, max_workers, export_batch_size)
+                      output_dir, provider_uri, max_workers, export_batch_size, chain, export_traces)
