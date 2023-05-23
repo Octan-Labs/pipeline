@@ -1,12 +1,12 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: 'bsc-indexing-0-000-000-1-000-000'
+  name: 'bsc-indexing'
 spec:
-  completions: 100
-  parallelism: 3
+  completions: 100 # Int (Current block / 28100000) 
+  parallelism: 1 # Increase up to 3 then 5 when indexer is stable
   completionMode: Indexed
-  backoffLimit: 3
+  backoffLimit: 10
   ttlSecondsAfterFinished: 3600
   template:
     spec:
