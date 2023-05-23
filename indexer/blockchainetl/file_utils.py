@@ -46,7 +46,12 @@ def get_file_handle(filename, mode='w', binary=False, create_parent_dirs=True):
         _fs = fsspec.filesystem('simplecache', target_protocol=target_protocol)
     if create_parent_dirs and filename is not None:
         parsed = urlparse(filename)
-        _fs.mkdirs(parsed.hostname + parsed.path.rpartition('/')[0], exist_ok=True)
+        if (parsed.hostname is None):
+            # TODO parse relative path
+            _fs.mkdirs(parsed.path.rpartition('/')[0], exist_ok=True)
+        else: 
+            _fs.mkdirs(parsed.hostname + parsed.path.rpartition('/')[0], exist_ok=True)
+
     full_mode = mode + ('b' if binary else '')
     is_file = filename and filename != '-'
     if is_file:

@@ -7,56 +7,56 @@ networks:
     
 services:
 
-  mysql:
-    build: ./docker/mysql
-    image: mysql:latest
-    networks:
-      octan-pipeline-poc:
-        aliases:
-          - mysql
-    volumes:
-      - ./volumes/mysql:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=admin
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=admin
-      - MYSQL_DATABASE=metastore_db
-    ports:
-      - 3306:3306
-    healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
-      start_period: 5s
-      interval: 5s
-      timeout: 5s
-      retries: 55
+  # mysql:
+  #   build: ./docker/mysql
+  #   image: mysql:latest
+  #   networks:
+  #     octan-pipeline-poc:
+  #       aliases:
+  #         - mysql
+  #   volumes:
+  #     - ./volumes/mysql:/var/lib/mysql
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=admin
+  #     - MYSQL_USER=admin
+  #     - MYSQL_PASSWORD=admin
+  #     - MYSQL_DATABASE=metastore_db
+  #   ports:
+  #     - 3306:3306
+  #   healthcheck:
+  #     test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+  #     start_period: 5s
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 55
 
-  hive-metastore:
-    build: ./docker/hive-metastore
-    image: hive-metastore:latest
-    networks:
-      octan-pipeline-poc:
-        aliases:
-          - hive-metastore
-    ports:
-      - 9083:9083
-    environment:
-      - DATABASE_DRIVER=com.mysql.jdbc.Driver
-      - DATABASE_TYPE_JDBC=mysql
-      - DATABASE_HOST=mysql
-      - DATABASE_PORT=3306
-      - DATABASE_DB=metastore_db
-      - DATABASE_USER=admin
-      - DATABASE_PASSWORD=admin
-      - S3_BUCKET=metastore
-      - S3_PREFIX=/
-      - S3_ENDPOINT_URL=minio:9000
-      - AWS_ACCESS_KEY_ID=accesskey
-      - AWS_SECRET_ACCESS_KEY=secretkey
-    depends_on:
-      minio:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
+  # hive-metastore:
+  #   build: ./docker/hive-metastore
+  #   image: hive-metastore:latest
+  #   networks:
+  #     octan-pipeline-poc:
+  #       aliases:
+  #         - hive-metastore
+  #   ports:
+  #     - 9083:9083
+  #   environment:
+  #     - DATABASE_DRIVER=com.mysql.jdbc.Driver
+  #     - DATABASE_TYPE_JDBC=mysql
+  #     - DATABASE_HOST=mysql
+  #     - DATABASE_PORT=3306
+  #     - DATABASE_DB=metastore_db
+  #     - DATABASE_USER=admin
+  #     - DATABASE_PASSWORD=admin
+  #     - S3_BUCKET=metastore
+  #     - S3_PREFIX=/
+  #     - S3_ENDPOINT_URL=minio:9000
+  #     - AWS_ACCESS_KEY_ID=accesskey
+  #     - AWS_SECRET_ACCESS_KEY=secretkey
+  #   depends_on:
+  #     minio:
+  #       condition: service_healthy
+  #     mysql:
+  #       condition: service_healthy
 
 #   spark-iceberg:
 #     build: ./docker/spark-iceberg
@@ -81,7 +81,7 @@ services:
 
   exporter:
     container_name: exporter
-    image: trmaphi/evm-indexer:0.0.2
+    image: trmaphi/evm-indexer:0.0.3
     build: indexer/
     networks:
       - octan-pipeline-poc

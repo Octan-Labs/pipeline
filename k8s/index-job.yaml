@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: 'bsc-indexing'
 spec:
-  completions: 100 # Int (Current block / 28100000) 
+  completions: 100 # Int (Current block / 10000) 
   parallelism: 1 # Increase up to 3 then 5 when indexer is stable
   completionMode: Indexed
   backoffLimit: 10
@@ -13,7 +13,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: 'indexer'
-        image: 'trmaphi/evm-indexer:0.0.2'
+        image: 'trmaphi/evm-indexer:0.0.3'
         env:
           - name: LOWER_BOUND
             value: "0" 
