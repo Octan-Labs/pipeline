@@ -10,9 +10,8 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
     + export file format:
         + [X] csv
         + [X] json new line
-        + [ ] orc
-        + [ ] parquet
-        + [ ] iceberg (deprecated)
+        + [X] parquet
+        + [ ] iceberg (depend on [issue](https://github.com/apache/iceberg/issues/6564))
     + export sink:
         + [X] s3
         + [X] local
@@ -29,7 +28,7 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
     + support hive 3
 - graph processing
     + [X] graphframes (deprecated)
-    + [ ] graphscope
+    + [X] graphscope
 - resilient in memory distributed storage
     + [X] spark rdd (deprecated)
     + [ ] vineyard v6d

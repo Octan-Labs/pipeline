@@ -23,7 +23,7 @@
 
 from ethereumetl.domain.receipt_log import EthReceiptLog
 from ethereumetl.utils import hex_to_dec
-
+import pyarrow as pa
 
 class EthReceiptLogMapper(object):
 
@@ -100,3 +100,17 @@ class EthReceiptLogMapper(object):
             receipt_log.topics = topics
 
         return receipt_log
+
+    @classmethod
+    def schema(cls):
+        return pa.schema([
+            pa.field('log_index', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('transaction_hash', pa.string(), nullable=False),
+            pa.field('transaction_index', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('address', pa.string()),
+            pa.field('data', pa.string()),
+            pa.field('topics', pa.list_(pa.string())),
+            pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+            pa.field('block_hash', pa.string(), nullable=False),
+        ])

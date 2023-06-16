@@ -22,7 +22,7 @@
 
 
 from ethereumetl.domain.contract import EthContract
-
+import pyarrow as pa
 
 class EthContractMapper(object):
 
@@ -43,3 +43,16 @@ class EthContractMapper(object):
             'is_erc721': contract.is_erc721,
             'block_number': contract.block_number
         }
+
+    @classmethod
+    def schema(cls):
+        return pa.schema([
+            pa.field('address', pa.string(), nullable=False),
+            pa.field('bytecode', pa.string()),
+            pa.field('function_sighashes', pa.list_(pa.string())),
+            pa.field('is_erc20', pa.bool_()),
+            pa.field('is_erc721', pa.bool_()),
+            pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+            pa.field('block_hash', pa.string(), nullable=False),
+        ])

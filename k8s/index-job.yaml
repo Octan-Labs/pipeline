@@ -15,9 +15,9 @@ spec:
       - name: 'indexer'
         image: 'trmaphi/evm-indexer:0.0.3'
         env:
-          - name: LOWER_BOUND
+          - name: ALL_INDEXER_START_BLOCK
             value: "0" 
-          - name: UPPER_BOUND
+          - name: ALL_INDEXER_END_BLOCK
             value: "28100000"
           - name: INDEXER_RANGE
             value: "10000"

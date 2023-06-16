@@ -1,4 +1,5 @@
 import logging
+import gc
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
@@ -24,7 +25,8 @@ class EthStreamerAdapter:
             item_exporter=ConsoleItemExporter(),
             batch_size=100,
             max_workers=5,
-            entity_types=tuple(EntityType.ALL_FOR_STREAMING)):
+            entity_types=tuple(EntityType.ALL_TRACE_SUPPORT),
+            calculate_offset=True):
         self.batch_web3_provider = batch_web3_provider
         self.item_exporter = item_exporter
         self.batch_size = batch_size
@@ -32,6 +34,7 @@ class EthStreamerAdapter:
         self.entity_types = entity_types
         self.item_id_calculator = EthItemIdCalculator()
         self.item_timestamp_calculator = EthItemTimestampCalculator()
+        self.calculate_offset=calculate_offset
 
     def open(self):
         self.item_exporter.open()
@@ -73,34 +76,66 @@ class EthStreamerAdapter:
 
         enriched_blocks = blocks \
             if EntityType.BLOCK in self.entity_types else []
+        self._calculate_offset_and_export(sort_by(enriched_blocks, 'number'))
+        del enriched_blocks
+        gc.collect()
+
         enriched_transactions = enrich_transactions(transactions, receipts) \
             if EntityType.TRANSACTION in self.entity_types else []
+        self._calculate_offset_and_export(sort_by(enriched_transactions, ('block_number', 'transaction_index')))
+        del enriched_transactions
+        del transactions
+        del receipts
+        gc.collect()
+
         enriched_logs = enrich_logs(blocks, logs) \
             if EntityType.LOG in self.entity_types else []
+        self._calculate_offset_and_export(sort_by(enriched_logs, ('block_number', 'log_index')))
+        del enriched_logs
+        gc.collect()
+
         enriched_token_transfers = enrich_token_transfers(blocks, token_transfers) \
             if EntityType.TOKEN_TRANSFER in self.entity_types else []
+        self._calculate_offset_and_export(sort_by(enriched_token_transfers, ('block_number', 'log_index')))
+        del enriched_token_transfers
+        gc.collect()
+
         enriched_traces = enrich_traces(blocks, traces) \
             if EntityType.TRACE in self.entity_types else []
+        self._calculate_offset_and_export(sort_by(enriched_traces, ('block_number', 'trace_index')))
+        del enriched_traces
+        gc.collect()
+
         enriched_contracts = enrich_contracts(blocks, contracts) \
             if EntityType.CONTRACT in self.entity_types else []
+        self._calculate_offset_and_export(sort_by(enriched_contracts, ('block_number',)))
+        del enriched_contracts
+        gc.collect()
+
         enriched_tokens = enrich_tokens(blocks, tokens) \
             if EntityType.TOKEN in self.entity_types else []
+        
+        self._calculate_offset_and_export(sort_by(enriched_tokens, ('block_number',)))
+        del enriched_tokens
+        gc.collect()
 
+        # all_items = \
+        #     sort_by(enriched_blocks, 'number') + \
+        #     sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
+        #     sort_by(enriched_logs, ('block_number', 'log_index')) + \
+        #     sort_by(enriched_token_transfers, ('block_number', 'log_index')) + \
+        #     sort_by(enriched_traces, ('block_number', 'trace_index')) + \
+        #     sort_by(enriched_contracts, ('block_number',)) + \
+        #     sort_by(enriched_tokens, ('block_number',))
+
+    def _calculate_offset_and_export(self, items):
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
 
-        all_items = \
-            sort_by(enriched_blocks, 'number') + \
-            sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
-            sort_by(enriched_logs, ('block_number', 'log_index')) + \
-            sort_by(enriched_token_transfers, ('block_number', 'log_index')) + \
-            sort_by(enriched_traces, ('block_number', 'trace_index')) + \
-            sort_by(enriched_contracts, ('block_number',)) + \
-            sort_by(enriched_tokens, ('block_number',))
-
-        self.calculate_item_ids(all_items)
-        self.calculate_item_timestamps(all_items)
-
-        self.item_exporter.export_items(all_items)
+        if self.calculate_offset == True:
+            self.calculate_item_ids(items)
+            self.calculate_item_timestamps(items)
+     
+        self.item_exporter.export_items(items)
 
     def _export_blocks_and_transactions(self, start_block, end_block):
         blocks_and_transactions_item_exporter = InMemoryItemExporter(item_types=['block', 'transaction'])

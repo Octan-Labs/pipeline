@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import pyarrow as pa
 
 class EthTokenMapper(object):
     def token_to_dict(self, token):
@@ -32,3 +33,16 @@ class EthTokenMapper(object):
             'total_supply': token.total_supply,
             'block_number': token.block_number
         }
+    
+    @classmethod
+    def schema(cls):
+        return pa.schema([
+            pa.field('address', pa.string(), nullable=False),
+            pa.field('symbol', pa.string()),
+            pa.field('name', pa.list_(pa.string())),
+            pa.field('decimals', pa.string()),
+            pa.field('total_supply', pa.string()),
+            pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+            pa.field('block_hash', pa.string(), nullable=False),
+        ])

@@ -43,7 +43,8 @@ def get_file_handle(filename, mode='w', binary=False, create_parent_dirs=True):
     global _fs
     if _fs == None:
         target_protocol = infer_storage_options(filename)['protocol']
-        _fs = fsspec.filesystem('simplecache', target_protocol=target_protocol)
+        # _fs = fsspec.filesystem('simplecache', target_protocol=target_protocol)
+        _fs = fsspec.filesystem(target_protocol)
     if create_parent_dirs and filename is not None:
         parsed = urlparse(filename)
         if (parsed.hostname is None):
@@ -75,6 +76,7 @@ def close_silently(file_handle):
     except OSError:
         pass
 
+# Fsspec compatible
 class NoopFile:
     def __enter__(self):
         pass
@@ -95,4 +97,10 @@ class NoopFile:
         pass
 
     def write(self, bytes):
+        pass
+
+    def path(self):
+        pass
+
+    def fs(self):
         pass

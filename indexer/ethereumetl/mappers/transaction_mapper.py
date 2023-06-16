@@ -23,7 +23,7 @@
 
 from ethereumetl.domain.transaction import EthTransaction
 from ethereumetl.utils import hex_to_dec, to_normalized_address
-
+import pyarrow as pa
 
 class EthTransactionMapper(object):
     def json_dict_to_transaction(self, json_dict, **kwargs):
@@ -64,3 +64,29 @@ class EthTransactionMapper(object):
             'max_priority_fee_per_gas': transaction.max_priority_fee_per_gas,
             'transaction_type': transaction.transaction_type
         }
+
+    @classmethod
+    def schema(cls):
+        return pa.schema([
+            pa.field('hash', pa.string(), nullable=False),
+            pa.field('nonce', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('transaction_index', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('from_address', pa.string(), nullable=False),
+            pa.field('to_address', pa.string()),
+            pa.field('value', pa.decimal256(precision=76, scale=0)),
+            pa.field('gas', pa.decimal128(precision=38, scale=0)),
+            pa.field('gas_price', pa.decimal128(precision=38, scale=0)),
+            pa.field('input', pa.string()),
+            pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+            pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('block_hash', pa.string(), nullable=False),
+            pa.field('max_fee_per_gas', pa.decimal128(precision=38, scale=0)),
+            pa.field('max_priority_fee_per_gas', pa.decimal128(precision=38, scale=0)),
+            pa.field('transaction_type', pa.uint8()),
+            pa.field('receipt_cumulative_gas_used', pa.decimal128(precision=38, scale=0)),
+            pa.field('receipt_gas_used', pa.decimal128(precision=38, scale=0)),
+            pa.field('receipt_contract_address', pa.string()),
+            pa.field('receipt_root', pa.string()),
+            pa.field('receipt_status', pa.decimal128(precision=38, scale=0)),
+            pa.field('receipt_effective_gas_price', pa.decimal128(precision=38, scale=0))
+        ])

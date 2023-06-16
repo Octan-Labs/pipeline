@@ -19,12 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import logging
 
 class InMemoryItemExporter:
     def __init__(self, item_types):
         self.item_types = item_types
         self.items = {}
+        self.logger = logging.getLogger('InMemoryItemExporter')
 
     def open(self):
         for item_type in self.item_types:
@@ -38,7 +39,8 @@ class InMemoryItemExporter:
         self.items[item_type].append(item)
 
     def close(self):
-        pass
-
+        for item_type in self.item_types:
+            self.logger.info('{} items exported: {}'.format(item_type, len(self.items[item_type])))
+            
     def get_items(self, item_type):
         return self.items[item_type]

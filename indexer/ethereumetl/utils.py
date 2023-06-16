@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
+import sys
+import decimal
 import itertools
 import warnings
 
@@ -31,7 +32,16 @@ def hex_to_dec(hex_string):
     if hex_string is None:
         return None
     try:
-        return int(hex_string, 16)
+        result = int(hex_string, 16)
+        if result > sys.maxsize:
+            dec = decimal.Decimal(result)
+            ## bigger than Decimal256(precision=76, scale=1)
+            if dec.compare(2**252) == decimal.Decimal(1):
+                return dec / decimal.Decimal(10*1)
+            else:
+                return dec
+        else:
+            return result
     except ValueError:
         print("Not a hex string %s" % hex_string)
         return hex_string
