@@ -22,11 +22,16 @@ def is_unix_time_range(start, end):
 
 
 
-def get_indexed_partition_as_list(start, end, indexer_index, partition_batch_size):
-    if partition_batch_size * indexer_index < start or partition_batch_size * indexer_index > end:
-        raise click.BadParameter('partition_batch_size x indexer_index must in the range of [{start}, {end}]'.format(start=start, end=end))
-    batch_start_block = partition_batch_size * indexer_index
-    batch_end_block = partition_batch_size * (indexer_index + 1) - 1
+def get_indexed_partition_as_list(worker_job_index, first_worker_partition_index, partition_batch_size, provider_uri):
+    provider = get_provider_from_uri(provider_uri)
+    web3 = build_web3(provider)
+    last_block = int(web3.eth.getBlock("latest").number)
+    last_partition_index = int(last_block / partition_batch_size)
+    
+    if first_worker_partition_index > last_partition_index:
+        raise click.BadParameter('first_worker_partition_index must in the range of [{start}, {end}]'.format(start=0, end=last_partition_index))
+    batch_start_block = partition_batch_size * (first_worker_partition_index + worker_job_index)
+    batch_end_block = partition_batch_size * (first_worker_partition_index + worker_job_index + 1) - 1
 
     padded_batch_start_block = str(batch_start_block).zfill(ZERO_PADDING)
     padded_batch_end_block = str(batch_end_block).zfill(ZERO_PADDING)

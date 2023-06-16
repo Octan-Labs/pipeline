@@ -7,21 +7,17 @@ spec:
   parallelism: 1 # Increase up to 3 then 5 when indexer is stable
   completionMode: Indexed
   backoffLimit: 10
-  ttlSecondsAfterFinished: 3600
+  ttlSecondsAfterFinished: 60
   template:
     spec:
       restartPolicy: Never
       containers:
       - name: 'indexer'
-        image: 'trmaphi/evm-indexer:0.0.3'
+        image: 'trmaphi/evm-indexer:0.0.7'
         env:
-          - name: ALL_INDEXER_START_BLOCK
-            value: "0" 
-          - name: ALL_INDEXER_END_BLOCK
-            value: "28100000"
-          - name: INDEXER_RANGE
+          - name: PARTITION_BATCH_SIZE
             value: "10000"
-          - name: START_INDEX
+          - name: FIRST_WORKER_PARTITION_INDEX
             value: "0"
           - name: CHAIN
             value: bsc

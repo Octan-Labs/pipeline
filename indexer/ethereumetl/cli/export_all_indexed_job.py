@@ -27,14 +27,14 @@ from blockchainetl.logging_utils import logging_basic_config
 
 from ethereumetl.cli.cli_utils import get_indexed_partition_as_list, parse_entity_types, validate_dividend_of_ten
 from ethereumetl.jobs.export_all_common import export_all_common
+from ethereumetl.utils import check_classic_provider_uri
 from ethereumetl.enumeration.entity_type import EntityType
 
 logging_basic_config()
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('-s', '--all-indexer-start', required=True, type=int, default=int(environ.get("ALL_INDEXER_START_BLOCK")), help='All Indexer Start block/ISO date/Unix time')
-@click.option('-e', '--all-indexer-end', required=True, type=int, default=int(environ.get("ALL_INDEXER_END_BLOCK")), help='All Indexer End block/ISO date/Unix time')
-@click.option('--indexer-index', required=True, type=int, default=int(environ.get("JOB_COMPLETION_INDEX") or environ.get("INDEXER_INDEX") or 0), help='Index of the worker, compatible with JOB_COMPLETION_INDEX https://kubernetes.io/docs/tasks/job/indexed-parallel-processing-static/')
+@click.option('--worker-job-index', required=True, type=int, default=int(environ.get("JOB_COMPLETION_INDEX") or environ.get("WORKER_JOB_INDEX") or 0), help='Index of the worker in a scheduled job, compatible with JOB_COMPLETION_INDEX https://kubernetes.io/docs/tasks/job/indexed-parallel-processing-static/')
+@click.option('--first-worker-partition-index', default=lambda: int(environ.get("FIRST_WORKER_PARTITION_INDEX") or 0), show_default=True, type=int, help='1st partition index')
 @click.option('-b', '--partition-batch-size', default=int(environ.get("PARTITION_BATCH_SIZE", 10000)), callback=validate_dividend_of_ten, show_default=True, type=int,
               help='The number of blocks to export in partition.')
 @click.option('-p', '--provider-uri', default=lambda: environ.get("PROVIDER_URI", 'https://mainnet.infura.io'), show_default=True, type=str,
@@ -46,10 +46,9 @@ logging_basic_config()
 @click.option('-e', '--entity-types', default=lambda: environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_TRACE_SUPPORT)), show_default=True, type=str,
               help='The list of entity types to export.')
 @click.option('-c', '--chain', default=lambda: environ.get("CHAIN", 'ethereum'), show_default=True, type=str, help='The chain network to connect to.')
-def export_all_indexed_job(all_indexer_start, all_indexer_end, indexer_index, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size, entity_types,
+def export_all_indexed_job(worker_job_index, first_worker_partition_index, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size, entity_types,
                chain='ethereum'):
     """Exports all data for a range of blocks with indexed job."""
-
-
-    export_all_common(get_indexed_partition_as_list(all_indexer_start, all_indexer_end, indexer_index, partition_batch_size),
+    provider_uri = check_classic_provider_uri(chain, provider_uri)
+    export_all_common(get_indexed_partition_as_list(worker_job_index, first_worker_partition_index, partition_batch_size, provider_uri),
                       output_dir, provider_uri, max_workers, export_batch_size, chain, parse_entity_types(entity_types))
