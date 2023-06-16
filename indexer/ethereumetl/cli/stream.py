@@ -46,7 +46,7 @@ from os import environ
                    'or Kinesis, e.g. kinesis://your-data-stream-name'
                    'If not specified will print to console')
 @click.option('-s', '--start-block', default=lambda: environ.get("START_BLOCK"), show_default=True, type=int, help='Start block')
-@click.option('-e', '--entity-types', default=lambda: environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_FOR_INFURA)), show_default=True, type=str,
+@click.option('-e', '--entity-types', default=lambda: environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_NO_TRACE_SUPPORT)), show_default=True, type=str,
               help='The list of entity types to export.')
 @click.option('--period-seconds', default=lambda: environ.get("PERIOD_SECONDS", 10), show_default=True, type=int, help='How many seconds to sleep between syncs')
 @click.option('-b', '--batch-size', default=lambda: environ.get("BATCH_SIZE", 10), show_default=True, type=int, help='How many blocks to batch in single request')

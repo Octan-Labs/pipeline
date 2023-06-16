@@ -24,7 +24,7 @@
 from ethereumetl.domain.trace import EthTrace
 from ethereumetl.mainnet_daofork_state_changes import DAOFORK_BLOCK_NUMBER
 from ethereumetl.utils import hex_to_dec, to_normalized_address
-
+import pyarrow as pa
 
 class EthTraceMapper(object):
     def json_dict_to_trace(self, json_dict):
@@ -192,3 +192,29 @@ class EthTraceMapper(object):
             'trace_id': trace.trace_id,
             'trace_index': trace.trace_index,
         }
+
+    @classmethod
+    def schema(cls):
+        return pa.schema([
+            pa.field('transaction_index', pa.decimal128(precision=38, scale=0)),
+            pa.field('from_address', pa.string()),
+            pa.field('to_address', pa.string()),
+            pa.field('value', pa.decimal128(precision=38, scale=0)),
+            pa.field('input', pa.string()),
+            pa.field('output', pa.string()),
+            pa.field('trace_type', pa.string(), nullable=False),
+            pa.field('call_type', pa.string()),
+            pa.field('reward_type', pa.string()),
+            pa.field('gas', pa.decimal128(precision=38, scale=0)),
+            pa.field('gas_used', pa.decimal128(precision=38, scale=0)),
+            pa.field('subtraces', pa.decimal128(precision=38, scale=0)),
+            pa.field('trace_address', pa.list_(pa.string())),
+            pa.field('error', pa.string()),
+            pa.field('status', pa.decimal128(precision=38, scale=0)),
+            pa.field('transaction_hash', pa.string()),
+            pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('trace_id', pa.string()),
+            pa.field('trace_index', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+            pa.field('block_hash', pa.string(), nullable=False),
+        ])

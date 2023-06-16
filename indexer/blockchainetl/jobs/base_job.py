@@ -21,8 +21,12 @@
 # SOFTWARE.
 
 
+import logging
+
+
 class BaseJob(object):
     def run(self):
+        logging.getLogger(type(self).__name__).info('start run()')
         try:
             self._start()
             self._export()

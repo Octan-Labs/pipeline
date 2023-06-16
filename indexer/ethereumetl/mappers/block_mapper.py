@@ -24,7 +24,7 @@
 from ethereumetl.domain.block import EthBlock
 from ethereumetl.mappers.transaction_mapper import EthTransactionMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
-
+import pyarrow as pa
 
 class EthBlockMapper(object):
     def __init__(self, transaction_mapper=None):
@@ -88,3 +88,27 @@ class EthBlockMapper(object):
             'transaction_count': block.transaction_count,
             'base_fee_per_gas': block.base_fee_per_gas
         }
+
+    @classmethod
+    def schema(cls):
+        return pa.schema([
+            pa.field('number', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('hash', pa.string(), nullable=False),
+            pa.field('parent_hash', pa.string()),
+            pa.field('nonce', pa.string(), nullable=False),
+            pa.field('sha3_uncles', pa.string()),
+            pa.field('logs_bloom', pa.string()),
+            pa.field('transactions_root', pa.string()),
+            pa.field('state_root', pa.string()),
+            pa.field('receipts_root', pa.string()),
+            pa.field('miner', pa.string()),
+            pa.field('difficulty', pa.decimal256(precision=76, scale=0)),
+            pa.field('total_difficulty', pa.decimal256(precision=76, scale=0)),
+            pa.field('size', pa.decimal128(precision=38, scale=0)),
+            pa.field('extra_data', pa.string()),
+            pa.field('gas_limit', pa.decimal128(precision=38, scale=0)),
+            pa.field('gas_used', pa.decimal128(precision=38, scale=0)),
+            pa.field('timestamp', pa.decimal128(precision=38, scale=0), nullable=False),
+            pa.field('transaction_count', pa.timestamp('s', tz='UTC')),
+            pa.field('base_fee_per_gas', pa.decimal128(precision=38, scale=0))
+        ])
