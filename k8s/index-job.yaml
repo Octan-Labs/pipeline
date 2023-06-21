@@ -13,6 +13,9 @@ spec:
       restartPolicy: Never
       containers:
       - name: 'indexer'
+        resources:
+          requests:
+            memory: "8Gi"
         image: 'trmaphi/evm-indexer:0.0.7'
         env:
           - name: PARTITION_BATCH_SIZE
@@ -22,7 +25,7 @@ spec:
           - name: CHAIN
             value: bsc
           - name: PROVIDER_URI
-            value: "https://bsc-dataseed1.binance.org"
+            value: "https://api.speedynodes.net:8443/archive/bsc-archive-http?apikey=FOWQEgWyNvRyBS2WmIiuaTsTf1473L3a"
           - name: OUTPUT_DIR
             value: "s3://bsc-archive"
           - name: FSSPEC_S3_ENDPOINT_URL
