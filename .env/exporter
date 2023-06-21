@@ -1,5 +1,9 @@
 PARTITION_BATCH_SIZE=10000
-FIRST_WORKER_PARTITION_INDEX=500
-ENTITY_TYPES=block,transaction,log,trace,contract
-PROVIDER_URI=https://api.speedynodes.net:8443/archive/bsc-archive-http?apikey=FOWQEgWyNvRyBS2WmIiuaTsTf1473L3a
-OUTPUT_DIR=file:///home/trmaphi/source/pipeline/output
+FIRST_WORKER_PARTITION_INDEX=100
+PROVIDER_URI=https://bsc-dataseed.binance.org
+OUTPUT_DIR=s3://bsc-archive
+FSSPEC_S3_ENDPOINT_URL=https://play.min.io:9000
+FSSPEC_CACHE_REGIONS=true
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=Q3AM3UQ867SPQQA43P2F
+AWS_SECRET_ACCESS_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
