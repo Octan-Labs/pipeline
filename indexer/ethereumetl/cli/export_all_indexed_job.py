@@ -43,7 +43,7 @@ logging_basic_config()
 @click.option('-o', '--output-dir', default=lambda: environ.get("OUTPUT_DIR", 'output'), show_default=True, type=str, help='Output directory, partitioned in Hive style.')
 @click.option('-w', '--max-workers', default=lambda: environ.get("MAX_WORKERS", 5), show_default=True, type=int, help='The maximum number of workers.')
 @click.option('-B', '--export-batch-size', default=lambda: environ.get("EXPORT_BATCH_SIZE", 100), show_default=True, type=int, help='The number of requests in JSON RPC batches.')
-@click.option('-e', '--entity-types', default=lambda: environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_TRACE_SUPPORT)), show_default=True, type=str,
+@click.option('-e', '--entity-types', default=lambda: environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_NO_TRACE_SUPPORT)), show_default=True, type=str,
               help='The list of entity types to export.')
 @click.option('-c', '--chain', default=lambda: environ.get("CHAIN", 'ethereum'), show_default=True, type=str, help='The chain network to connect to.')
 def export_all_indexed_job(worker_job_index, first_worker_partition_index, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size, entity_types,

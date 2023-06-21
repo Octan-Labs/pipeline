@@ -24,8 +24,10 @@ spec:
             value: "0"
           - name: CHAIN
             value: bsc
+          # - name: ENTITY_TYPES
+          #   value: "block, transaction, log, token_transfer, trace, contract, token"
           - name: PROVIDER_URI
-            value: "https://api.speedynodes.net:8443/archive/bsc-archive-http?apikey=FOWQEgWyNvRyBS2WmIiuaTsTf1473L3a"
+            value: "https://bsc-dataseed.binance.org"
           - name: OUTPUT_DIR
             value: "s3://bsc-archive"
           - name: FSSPEC_S3_ENDPOINT_URL
