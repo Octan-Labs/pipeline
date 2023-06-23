@@ -39,7 +39,7 @@ class EthTransactionMapper(object):
         transaction.value = hex_to_dec(json_dict.get('value'))
         transaction.gas = hex_to_dec(json_dict.get('gas'))
         transaction.gas_price = hex_to_dec(json_dict.get('gasPrice'))
-        transaction.input = json_dict.get('input')
+        # transaction.input = json_dict.get('input')
         transaction.max_fee_per_gas = hex_to_dec(json_dict.get('maxFeePerGas'))
         transaction.max_priority_fee_per_gas = hex_to_dec(json_dict.get('maxPriorityFeePerGas'))
         transaction.transaction_type = hex_to_dec(json_dict.get('type'))
@@ -59,7 +59,7 @@ class EthTransactionMapper(object):
             'value': transaction.value,
             'gas': transaction.gas,
             'gas_price': transaction.gas_price,
-            'input': transaction.input,
+            # 'input': transaction.input,
             'max_fee_per_gas': transaction.max_fee_per_gas,
             'max_priority_fee_per_gas': transaction.max_priority_fee_per_gas,
             'transaction_type': transaction.transaction_type
@@ -73,10 +73,10 @@ class EthTransactionMapper(object):
             pa.field('transaction_index', pa.decimal128(precision=38, scale=0), nullable=False),
             pa.field('from_address', pa.string(), nullable=False),
             pa.field('to_address', pa.string()),
-            pa.field('value', pa.decimal256(precision=76, scale=0)),
+            pa.field('value', pa.decimal256(precision=38, scale=0)),
             pa.field('gas', pa.decimal128(precision=38, scale=0)),
             pa.field('gas_price', pa.decimal128(precision=38, scale=0)),
-            pa.field('input', pa.string()),
+            # pa.field('input', pa.string()),
             pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
             pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
             pa.field('block_hash', pa.string(), nullable=False),

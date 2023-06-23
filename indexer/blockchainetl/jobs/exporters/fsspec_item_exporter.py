@@ -63,4 +63,4 @@ class FsspecItemExporter(ConsoleItemExporter):
             close_silently(self.writer_mapping[item_type])
             counter = self.counter_mapping[item_type]
             if counter is not None:
-                self.logger.info('{} items exported: {} into {}'.format(item_type, counter.increment() - 1, (self.filename_without_ext_mapping['block'] + '.' + self.file_format)))
+                self.logger.info('{} items exported: {} into {}'.format(item_type, counter.increment() - 1, (self.filename_without_ext_mapping[item_type] + '.' + self.file_format)))
