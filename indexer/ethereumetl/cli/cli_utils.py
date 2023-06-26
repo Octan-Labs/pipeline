@@ -30,16 +30,18 @@ def get_indexed_partition_as_list(worker_job_index, first_worker_partition_index
     
     if first_worker_partition_index > last_partition_index:
         raise click.BadParameter('first_worker_partition_index must in the range of [{start}, {end}]'.format(start=0, end=last_partition_index))
-    batch_start_block = partition_batch_size * (first_worker_partition_index + worker_job_index)
-    batch_end_block = partition_batch_size * (first_worker_partition_index + worker_job_index + 1) - 1
 
-    padded_batch_start_block = str(batch_start_block).zfill(ZERO_PADDING)
-    padded_batch_end_block = str(batch_end_block).zfill(ZERO_PADDING)
-    partition_dir = '/start_block={padded_batch_start_block}/end_block={padded_batch_end_block}'.format(
-        padded_batch_start_block=padded_batch_start_block,
-        padded_batch_end_block=padded_batch_end_block,
-    )
-    yield batch_start_block, batch_end_block, partition_dir
+    for job_index in range(worker_job_index):
+        batch_start_block = partition_batch_size * (first_worker_partition_index + job_index)
+        batch_end_block = partition_batch_size * (first_worker_partition_index + job_index + 1) - 1
+
+        padded_batch_start_block = str(batch_start_block).zfill(ZERO_PADDING)
+        padded_batch_end_block = str(batch_end_block).zfill(ZERO_PADDING)
+        partition_dir = '/start_block={padded_batch_start_block}/end_block={padded_batch_end_block}'.format(
+            padded_batch_start_block=padded_batch_start_block,
+            padded_batch_end_block=padded_batch_end_block,
+        )
+        yield batch_start_block, batch_end_block, partition_dir
 
 
 def get_partitions(start, end, partition_batch_size, provider_uri):
