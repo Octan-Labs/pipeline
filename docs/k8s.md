@@ -7,7 +7,7 @@ bin/spark-submit \
 --conf spark.history.fs.inProgressOptimization.enabled=true \
 --conf spark.history.fs.update.interval=5s \
 --conf spark.kubernetes.namespace='spark-jobs' \
---conf spark.kubernetes.container.image=171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.5 \
+--conf spark.kubernetes.container.image=171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19 \
 --conf spark.kubernetes.container.image.pullPolicy=IfNotPresent \
 --conf spark.kubernetes.driver.podTemplateFile='../k8s/driver_pod_template.yml' \
 --conf spark.kubernetes.executor.podTemplateFile='../k8s/executor_pod_template.yml' \
@@ -30,14 +30,14 @@ bin/spark-submit \
 s3a://datateam-spark/script.py \
 s3a://datateam-spark/output
 
-./bin/docker-image-tool.sh -t 0.0.5 -p ./kubernetes/dockerfiles/spark/bindings/python/Dockerfile build 
+./bin/docker-image-tool.sh -t 0.0.5 -p ./kubernetes/dockerfiles/spark/bindings/python/Dockerfile build
 
-docker tag spark-py 171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.5
-docker push 171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.5
+docker tag spark-py 171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19
+docker push 171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19
 
 docker run ghcr.io/exacaster/lighter:0.0.45-spark3.3.2 \
-  -p 8080:8080 \
-  -p 25333:25333 \
-  -e LIGHTER_KUBERNETES_ENABLED=true \
-  -e LIGHTER_KUBERNETES_MASTER=k8s://F555453741847D0C5223F7254EDF95AD.gr7.ap-southeast-1.eks.amazonaws.com
+ -p 8080:8080 \
+ -p 25333:25333 \
+ -e LIGHTER_KUBERNETES_ENABLED=true \
+ -e LIGHTER_KUBERNETES_MASTER=k8s://F555453741847D0C5223F7254EDF95AD.gr7.ap-southeast-1.eks.amazonaws.com
 j

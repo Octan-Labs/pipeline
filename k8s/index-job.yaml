@@ -1,9 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: indexing-configmap
+data:
+  LOWER_BOUND: 17060000
+  UPPER_BOUND: 17399999
+  INDEXER_RANGE: 10000
+  START_INDEX: 0
+  CHAIN: ethereum
+  PROVIDER_URI: https://bsc-dataseed.binance.org
+  OUTPUT_DIR: s3://octan-labs-ethereum/test-job
+  AWS_REGION: ap-southeast-1
+  AWS_ACCESS_KEY_ID: Q3AM3UQ867SPQQA43P2F
+  AWS_SECRET_ACCESS_KEY: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
+  BASE_PATH: s3a://octan-labs-ethereum/test-job
+  # ENTITY_TYPES: "block,transaction,log,token_transfer,trace,contract,token"
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: 'bsc-indexing'
+  name: "indexing"
 spec:
-  completions: 100 # Int (Current block / 10000) 
+  completions: 100 # Int (Current block / 10000)
   parallelism: 1 # Increase up to 3 then 5 when indexer is stable
   completionMode: Indexed
   backoffLimit: 10
@@ -12,39 +30,106 @@ spec:
     spec:
       restartPolicy: Never
       containers:
-      - name: 'indexer'
-        resources:
-          requests:
-            memory: "8Gi"
-        image: 'trmaphi/evm-indexer:0.0.7'
-        env:
-          - name: PARTITION_BATCH_SIZE
-            value: "10000"
-          - name: FIRST_WORKER_PARTITION_INDEX
-            value: "0"
-          - name: CHAIN
-            value: bsc
-          # - name: ENTITY_TYPES
-          #   value: "block, transaction, log, token_transfer, trace, contract, token"
-          - name: PROVIDER_URI
-            value: "https://bsc-dataseed.binance.org"
-          - name: OUTPUT_DIR
-            value: "s3://bsc-archive"
-          - name: FSSPEC_S3_ENDPOINT_URL
-            value: https://play.min.io:9000
-          - name: FSSPEC_CACHE_REGIONS
-            value: "true"
-          - name: AWS_REGION
-            value: us-east-1
-          - name: AWS_ACCESS_KEY_ID
-            value: Q3AM3UQ867SPQQA43P2F
-          - name: AWS_SECRET_ACCESS_KEY
-            value: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
-        args:
-          - export_all_indexed_job
-        volumeMounts:
-          - mountPath: /tmp
-            name: tmp
+        - name: "indexer"
+          image: "trmaphi/evm-indexer:0.0.7"
+          envFrom:
+            - configMapRef:
+                name: indexing-configmap
+          args:
+            - export_all_indexed_job
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
       volumes:
-      - name: tmp
-        emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "indexing-pre-tx"
+  annotations:
+    job.kubernetes.io/dependencies: "indexing"
+spec:
+  completions: 1
+  parallelism: 1
+  completionMode: Indexed
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: spark-job
+          image: 171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              ephemeral-storage: "8Gi"
+            limits:
+              ephemeral-storage: "16Gi"
+          env:
+            - name: BASE_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: indexing-configmap
+                  key: BASE_PATH
+          command:
+            - /usr/bin/tini
+            - -s
+            - --
+            - /opt/spark/bin/spark-submit
+            - --conf
+            - spark.eventLog.dir=s3a://datateam-spark/logs
+            - --conf
+            - spark.eventLog.enabled=true
+            - --conf
+            - spark.history.fs.inProgressOptimization.enabled=true
+            - --conf
+            - spark.history.fs.update.interval=5s
+            - --conf
+            - spark.kubernetes.container.image=171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19
+            - --conf
+            - spark.kubernetes.container.image.pullPolicy=IfNotPresent
+            - --conf
+            - spark.kubernetes.driver.podTemplateFile=s3a://datateam-spark/driver_pod_template.yml
+            - --conf
+            - spark.kubernetes.executor.podTemplateFile=s3a://datateam-spark/executor_pod_template.yml
+            - --conf
+            - spark.dynamicAllocation.enabled=true
+            - --conf
+            - spark.dynamicAllocation.shuffleTracking.enabled=true
+            - --conf
+            - spark.dynamicAllocation.maxExecutors=100
+            - --conf
+            - spark.dynamicAllocation.sustainedSchedulerBacklogTimeout=30
+            - --conf
+            - spark.dynamicAllocation.executorIdleTimeout=60s
+            - --conf
+            - spark.driver.memory=4g
+            - --conf
+            - spark.kubernetes.driver.request.cores=2
+            - --conf
+            - spark.kubernetes.driver.limit.cores=4
+            - --conf
+            - spark.executor.memory=4g
+            - --conf
+            - spark.kubernetes.executor.request.cores=2
+            - --conf
+            - spark.kubernetes.executor.limit.cores=4
+            - --conf
+            - spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+            - --conf
+            - spark.hadoop.fs.s3a.connection.ssl.enabled=false
+            - --conf
+            - spark.hadoop.fs.s3a.fast.upload=true
+            - --conf
+            - spark.serializer=org.apache.spark.serializer.KryoSerializer
+            - --conf
+            - spark.sql.sources.ignoreDataLocality.enabled=true
+            - --conf
+            - spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version=2
+            - --conf
+            - spark.driver.extraJavaOptions=-Divy.cache.dir=/tmp -Divy.home=/tmp
+            - s3a://datateam-spark/pre-tx.py
+            - $BASE_PATH
