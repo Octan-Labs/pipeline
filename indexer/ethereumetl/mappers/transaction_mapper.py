@@ -24,6 +24,7 @@
 from ethereumetl.domain.transaction import EthTransaction
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 import pyarrow as pa
+import decimal
 
 class EthTransactionMapper(object):
     def json_dict_to_transaction(self, json_dict, **kwargs):
@@ -36,8 +37,8 @@ class EthTransactionMapper(object):
         transaction.transaction_index = hex_to_dec(json_dict.get('transactionIndex'))
         transaction.from_address = to_normalized_address(json_dict.get('from'))
         transaction.to_address = to_normalized_address(json_dict.get('to'))
-        transaction.value = hex_to_dec(json_dict.get('value'))
-        transaction.gas = hex_to_dec(json_dict.get('gas'))
+        transaction.value = decimal.Decimal(hex_to_dec(json_dict.get('value')))
+        transaction.gas = decimal.Decimal(hex_to_dec(json_dict.get('gas')))
         transaction.gas_price = hex_to_dec(json_dict.get('gasPrice'))
         # transaction.input = json_dict.get('input')
         transaction.max_fee_per_gas = hex_to_dec(json_dict.get('maxFeePerGas'))
