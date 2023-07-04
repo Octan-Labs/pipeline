@@ -18,6 +18,10 @@ spec:
             memory: "8Gi"
         image: 'trmaphi/evm-indexer:0.0.7'
         env:
+          - name: START
+            value: "0"
+          - name: END
+            value: "1000000"
           - name: PARTITION_BATCH_SIZE
             value: "10000"
           - name: FIRST_WORKER_PARTITION_INDEX
@@ -41,7 +45,7 @@ spec:
           - name: AWS_SECRET_ACCESS_KEY
             value: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
         args:
-          - export_all_indexed_job
+          - export_all
         volumeMounts:
           - mountPath: /tmp
             name: tmp
