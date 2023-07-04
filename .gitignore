@@ -2,6 +2,7 @@ volumes/**/*
 spark-3.3.2-bin-hadoop3/**/*
 .vscode/**/*
 .metals/**/*
+!.vscode/launch.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
