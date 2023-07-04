@@ -25,6 +25,7 @@ from ethereumetl.domain.trace import EthTrace
 from ethereumetl.mainnet_daofork_state_changes import DAOFORK_BLOCK_NUMBER
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 import pyarrow as pa
+from decimal import Decimal
 
 class EthTraceMapper(object):
     def json_dict_to_trace(self, json_dict):
@@ -177,14 +178,14 @@ class EthTraceMapper(object):
             'transaction_index': trace.transaction_index,
             'from_address': trace.from_address,
             'to_address': trace.to_address,
-            'value': trace.value,
+            'value': Decimal(trace.value),
             'input': trace.input,
             'output': trace.output,
             'trace_type': trace.trace_type,
             'call_type': trace.call_type,
             'reward_type': trace.reward_type,
-            'gas': trace.gas,
-            'gas_used': trace.gas_used,
+            'gas': Decimal(trace.gas),
+            'gas_used': Decimal(trace.gas_used),
             'subtraces': trace.subtraces,
             'trace_address': trace.trace_address,
             'error': trace.error,
