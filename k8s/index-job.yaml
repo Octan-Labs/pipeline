@@ -28,6 +28,8 @@ spec:
             value: "0"
           - name: CHAIN
             value: bsc
+          - name: MAX_WORKERS
+            value: 16
           # - name: ENTITY_TYPES
           #   value: "block, transaction, log, token_transfer, trace, contract, token"
           - name: PROVIDER_URI

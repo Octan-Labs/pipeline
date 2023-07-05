@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "evmetl"
+version = "0.1.0"
+description = ""
+authors = ["Truong Ma Phi <trmaphi@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+base58 = "*"
+click = "==8.0.4"
+eth-abi = "<3.0.0,>=2.2.0"
+eth-utils = "==1.10"
+ethereum-dasm = "^0.1.5"
+pyarrow = "*"
+python-dateutil = "<3,>=2.8.0"
+requests = "*"
+timeout-decorator = {version = "==0.4.1", optional = true}
+web3 = "<6,>=5.29"
+blockchainetl = {path = "../../libs/blockchainetl", develop = true}
+
+[tool.poetry.dev-dependencies]
+pytest = "==4.3.*,>=4.3.0"
+
+[tool.poetry.extras]
+streaming-kinesis = ["boto3", "botocore"]
+streaming = ["google-cloud-pubsub", "google-cloud-storage", "grpcio", "kafka-python", "libcst", "pg8000", "sqlalchemy", "timeout-decorator"]
+
+[tool.poetry.scripts]
+evmetl = "evmetl.evmetl:run"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

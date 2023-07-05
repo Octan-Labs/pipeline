@@ -8,7 +8,8 @@
             "name": "Python: export_all",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/indexer/ethereumetl.py",
+            "cwd": "${workspaceFolder}/indexer/clis/evmetl",
+            "module": "evmetl",
             "args": [
                 "export_all",
             ],
