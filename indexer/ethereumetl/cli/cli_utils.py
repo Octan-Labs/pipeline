@@ -21,6 +21,11 @@ def is_unix_time_range(start, end):
                 re.match("^[0-9]{10}$|^[0-9]{13}$", end))
 
 
+def is_block_range(start, end):
+    """Checks for a valid block number."""
+    return (start.isdigit() and 0 <= int(start) <= 99999999 and
+            end.isdigit() and 0 <= int(end) <= 99999999)
+
 
 def get_indexed_partition_as_list(worker_job_index, first_worker_partition_index, partition_batch_size, provider_uri):
     provider = get_provider_from_uri(provider_uri)
