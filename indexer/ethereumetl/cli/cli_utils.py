@@ -1,7 +1,7 @@
 import click
 import re
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_service import EthService
@@ -77,9 +77,13 @@ def get_partitions(start, end, partition_batch_size, provider_uri, worker_job_in
             yield batch_start_block, batch_end_block, partition_dir
         else:
             while start_date <= end_date:
-                batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_date)
-                partition_dir = '/date={start_date!s}'.format(start_date=start_date)
-                yield batch_start_block, batch_end_block, partition_dir
+                start_datetime = datetime.combine(start_date, datetime.min.time().replace(tzinfo=timezone.utc))
+
+                for hour in range(24):
+                    batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
+                    partition_dir = '/date={start_date!s}/hour={hour}'.format(start_date=start_date, hour=hour)
+                    yield batch_start_block, batch_end_block, partition_dir
+                
                 start_date += day
 
     elif is_block_range(start, end):
