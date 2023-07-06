@@ -1,7 +1,7 @@
 import click
 import re
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_service import EthService
@@ -47,7 +47,7 @@ def get_indexed_partition_as_list(worker_job_index, first_worker_partition_index
     yield batch_start_block, batch_end_block, partition_dir
 
 
-def get_partitions(start, end, partition_batch_size, provider_uri, worker_job_index, first_worker_partition_index):
+def get_partitions(start, end, partition_batch_size, provider_uri, worker_index, first_worker_partition_index):
     """Yield partitions based on input data type."""
     if is_date_range(start, end) or is_unix_time_range(start, end):
         if is_date_range(start, end):
@@ -69,49 +69,43 @@ def get_partitions(start, end, partition_batch_size, provider_uri, worker_job_in
         web3 = build_web3(provider)
         eth_service = EthService(web3)
 
-        if worker_job_index >= 0 and first_worker_partition_index >= 0:
-            date_list = [start_date+timedelta(days=x) for x in range((end_date-start_date).days)]
-            partition_date = date_list[first_worker_partition_index + worker_job_index]
-            batch_start_block, batch_end_block = eth_service.get_block_range_for_date(partition_date)
-            partition_dir = '/date={partition_date!s}'.format(partition_date=partition_date)
-            yield batch_start_block, batch_end_block, partition_dir
-        else:
-            while start_date <= end_date:
-                batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_date)
-                partition_dir = '/date={start_date!s}'.format(start_date=start_date)
-                yield batch_start_block, batch_end_block, partition_dir
-                start_date += day
+        index = 0
+        while start_date <= end_date:
+            start_datetime = datetime.combine(start_date, datetime.min.time().replace(tzinfo=timezone.utc))
+            for hour in range(24):
+                if worker_index >= 0:
+                    if (worker_index + first_worker_partition_index) == index:
+                        batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
+                        partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime, partition_hour=hour)
+                        yield batch_start_block, batch_end_block, partition_dir
+                else:
+                    batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
+                    partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
+                    yield batch_start_block, batch_end_block, partition_dir
+                index += 1
+            start_date += day
 
     elif is_block_range(start, end):
         start_block = int(start)
         end_block = int(end)
 
-        if worker_job_index >= 0 and first_worker_partition_index >= 0:
-            batch_start_block = partition_batch_size * (first_worker_partition_index + worker_job_index)
+        index = 0
+        for batch_start_block in range(start_block, end_block + 1, partition_batch_size):
             batch_end_block = batch_start_block + partition_batch_size - 1
             if batch_end_block > end_block:
                 batch_end_block = end_block
-
             padded_batch_start_block = str(batch_start_block).zfill(ZERO_PADDING)
             padded_batch_end_block = str(batch_end_block).zfill(ZERO_PADDING)
             partition_dir = '/start_block={padded_batch_start_block}/end_block={padded_batch_end_block}'.format(
                 padded_batch_start_block=padded_batch_start_block,
                 padded_batch_end_block=padded_batch_end_block,
             )
-            yield batch_start_block, batch_end_block, partition_dir
-        else:
-            for batch_start_block in range(start_block, end_block + 1, partition_batch_size):
-                batch_end_block = batch_start_block + partition_batch_size - 1
-                if batch_end_block > end_block:
-                    batch_end_block = end_block
-
-                padded_batch_start_block = str(batch_start_block).zfill(ZERO_PADDING)
-                padded_batch_end_block = str(batch_end_block).zfill(ZERO_PADDING)
-                partition_dir = '/start_block={padded_batch_start_block}/end_block={padded_batch_end_block}'.format(
-                    padded_batch_start_block=padded_batch_start_block,
-                    padded_batch_end_block=padded_batch_end_block,
-                )
+            if worker_index >= 0:
+                if (worker_index + first_worker_partition_index) == index:
+                    yield batch_start_block, batch_end_block, partition_dir
+            else:
                 yield batch_start_block, batch_end_block, partition_dir
+            index += 1
 
     else:
         raise ValueError('start and end must be either block numbers or ISO dates or Unix times')

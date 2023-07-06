@@ -30,7 +30,7 @@ FIELDS_TO_EXPORT = [
     'from_address',
     'to_address',
     'value',
-    # 'input',
+    'input',
     'output',
     'trace_type',
     'call_type',
