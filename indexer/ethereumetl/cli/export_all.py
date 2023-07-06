@@ -39,7 +39,7 @@ logging_basic_config()
 @click.option('-s', '--start', required=True, type=str, default=environ.get("START"), help='Start block/ISO date/Unix time')
 @click.option('-e', '--end', required=True, type=str, default=environ.get("END"), help='End block/ISO date/Unix time')
 @click.option('--worker-job-index', type=int, default=int(environ.get("JOB_COMPLETION_INDEX") or -1), help='Index of the worker in a scheduled job, compatible with JOB_COMPLETION_INDEX https://kubernetes.io/docs/tasks/job/indexed-parallel-processing-static/')
-@click.option('--first-worker-partition-index', default=int(environ.get("FIRST_WORKER_PARTITION_INDEX") or -1), show_default=True, type=int, help='1st partition index')
+@click.option('--first-worker-partition-index', default=int(environ.get("FIRST_WORKER_PARTITION_INDEX") or 0), show_default=True, type=int, help='1st partition index')
 @click.option('-b', '--partition-batch-size', default=environ.get("PARTITION_BATCH_SIZE", 10000), show_default=True, type=int,
               help='The number of blocks to export in partition.')
 @click.option('-p', '--provider-uri', default=environ.get("PROVIDER_URI", 'https://mainnet.infura.io'), show_default=True, type=str,
