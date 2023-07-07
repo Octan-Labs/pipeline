@@ -77,7 +77,7 @@ class EthTransactionMapper(object):
             pa.field('value', pa.decimal128(precision=38, scale=0)),
             pa.field('gas', pa.decimal128(precision=38, scale=0)),
             pa.field('gas_price', pa.decimal128(precision=38, scale=0)),
-            # pa.field('input', pa.string()),
+            pa.field('input', pa.string()),
             pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
             pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
             pa.field('block_hash', pa.string(), nullable=False),

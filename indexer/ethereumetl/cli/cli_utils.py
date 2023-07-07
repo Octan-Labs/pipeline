@@ -76,7 +76,7 @@ def get_partitions(start, end, partition_batch_size, provider_uri, worker_index,
                 if worker_index >= 0:
                     if (worker_index + first_worker_partition_index) == index:
                         batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
-                        partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime, partition_hour=hour)
+                        partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
                         yield batch_start_block, batch_end_block, partition_dir
                 else:
                     batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
