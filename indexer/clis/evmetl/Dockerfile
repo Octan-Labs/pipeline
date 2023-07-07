@@ -1,55 +1,60 @@
-# FROM python:3.9-slim-bullseye
-# ENV PROJECT_DIR=evmetl
+# `python-base` sets up all our shared environment variables
+FROM python:3.9-slim-bullseye as python-base
 
-    
-# RUN mkdir /$PROJECT_DIR
-# WORKDIR /$PROJECT_DIR
-# COPY . .
-# RUN pip install --upgrade pip && pip install -e /$PROJECT_DIR/[streaming]
+    # python
+ENV PYTHONUNBUFFERED=1 \
+    # prevents python creating .pyc files
+    PYTHONDONTWRITEBYTECODE=1 \
+    \
+    # pip
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    \
+    # poetry
+    # https://python-poetry.org/docs/configuration/#using-environment-variables
+    POETRY_VERSION=1.5.1 \
+    # make poetry install to this location
+    POETRY_HOME="/opt/poetry" \
+    # make poetry create the virtual environment in the project's root
+    # it gets named `.venv`
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    # do not ask any interactive question
+    POETRY_NO_INTERACTION=1 \
+    \
+    # paths
+    # this is where our requirements + virtual environment will live
+    PYSETUP_PATH="/opt/pysetup" \
+    VENV_PATH="/opt/pysetup/.venv"
 
-# # Add Tini
-# RUN apt update && apt install -y --no-install-recommends tini \
-#     && \
-#     apt-get clean && \
-#     rm -rf /var/lib/apt/lists/*
 
-# # Tini is now available at /usr/bin/tini
-# ENTRYPOINT ["/usr/bin/tini", "--", "python", "evmetl"]
+# prepend poetry and venv to path
+ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
-FROM python:3.9-slim-bullseye as builder
 
-RUN pip install poetry==1.5.1
+# `builder-base` stage is used to build deps + create our virtual environment
+FROM python-base as builder-base
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        # deps for installing poetry
+        curl \
+        # deps for building python deps
+        build-essential
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache \
-    PROJECT_DIR=evmetl
+# install poetry - respects $POETRY_VERSION & $POETRY_HOME
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.5.1 python3 -
 
-RUN mkdir /$PROJECT_DIR
-WORKDIR /$PROJECT_DIR
+# copy project requirement files here to ensure they will be cached.
+WORKDIR $PYSETUP_PATH
+COPY poetry.lock pyproject.toml ./
 
-COPY pyproject.toml poetry.lock ./
-RUN touch README.md
+# install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
+RUN poetry install --only main
 
-RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --without dev --no-root
-
-FROM python:3.9-slim-bullseye as runtime
-
-ENV PROJECT_DIR=evmetl
-RUN mkdir /$PROJECT_DIR
-WORKDIR /$PROJECT_DIR
-
-ENV VIRTUAL_ENV=/$PROJECT_DIR/.venv \
-    PATH="/$PROJECT_DIR/.venv/bin:$PATH"
-
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-COPY evmetl ./evmetl
-
-# Add Tini
-RUN apt update && apt install -y --no-install-recommends tini \
-    && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-ENTRYPOINT ["/usr/bin/tini", "--", "python", "-m", "evmetl"]
+# `production` image used for runtime
+FROM python-base as production
+ENV FASTAPI_ENV=production
+COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
+COPY ./app /app/
+WORKDIR /app
+CMD ["python", "-m", "evmetl.main"]
