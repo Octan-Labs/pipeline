@@ -102,19 +102,18 @@ class EthStreamerAdapter:
             if EntityType.CONTRACT in self.entity_types else []
         self._calculate_offset_and_export(sort_by(enriched_contracts, ('block_number',)))
         del enriched_contracts
-        del contracts
         gc.collect()
 
         # Export tokens
         tokens = []
         if self._should_export(EntityType.TOKEN):
-            tokens = self._extract_tokens(contracts)
-        
+            tokens = self._extract_tokens(contracts)       
         enriched_tokens = enrich_tokens(blocks, tokens) \
             if EntityType.TOKEN in self.entity_types else []
         self._calculate_offset_and_export(sort_by(enriched_tokens, ('block_number',)))
         del enriched_tokens
         del tokens
+        del contracts
         gc.collect()
 
         enriched_blocks = blocks \
@@ -134,6 +133,9 @@ class EthStreamerAdapter:
         #     sort_by(enriched_tokens, ('block_number',))
 
     def _calculate_offset_and_export(self, items):
+        if len(items) == 0:
+            return
+        
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
 
         if self.calculate_offset == True:
