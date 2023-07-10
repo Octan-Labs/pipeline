@@ -47,7 +47,7 @@ def get_indexed_partition_as_list(worker_job_index, first_worker_partition_index
     yield batch_start_block, batch_end_block, partition_dir
 
 
-def get_partitions(start, end, partition_batch_size, provider_uri, worker_index, first_worker_partition_index):
+def get_partitions(start, end, partition_batch_size, provider_uri, worker_index, first_worker_partition_index, partition_to_hour):
     """Yield partitions based on input data type."""
     if is_date_range(start, end) or is_unix_time_range(start, end):
         if is_date_range(start, end):
@@ -62,7 +62,7 @@ def get_partitions(start, end, partition_batch_size, provider_uri, worker_index,
             elif len(start) == 13 and len(end) == 13:
                 start_date = datetime.utcfromtimestamp(int(start) / 1e3).date()
                 end_date = datetime.utcfromtimestamp(int(end) / 1e3).date()
-
+        
         day = timedelta(days=1)
 
         provider = get_provider_from_uri(provider_uri)
@@ -72,17 +72,22 @@ def get_partitions(start, end, partition_batch_size, provider_uri, worker_index,
         index = 0
         while start_date <= end_date:
             start_datetime = datetime.combine(start_date, datetime.min.time().replace(tzinfo=timezone.utc))
-            for hour in range(24):
-                if worker_index >= 0:
-                    if (worker_index + first_worker_partition_index) == index:
+            if partition_to_hour is True:
+                for hour in range(24):
+                    if worker_index >= 0:
+                        if (worker_index + first_worker_partition_index) == index:
+                            batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
+                            partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
+                            yield batch_start_block, batch_end_block, partition_dir
+                    else:
                         batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
                         partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
                         yield batch_start_block, batch_end_block, partition_dir
-                else:
-                    batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
-                    partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
-                    yield batch_start_block, batch_end_block, partition_dir
-                index += 1
+                    index += 1
+            else:
+                batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_datetime.date())
+                partition_dir = '/date={partition_date!s}'.format(partition_date=start_datetime.date())
+                yield batch_start_block, batch_end_block, partition_dir
             start_date += day
 
     elif is_block_range(start, end):
