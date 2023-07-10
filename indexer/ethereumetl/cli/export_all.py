@@ -40,6 +40,7 @@ logging_basic_config()
 @click.option('-e', '--end', required=True, type=str, default=environ.get("END"), help='End block/ISO date/Unix time')
 @click.option('--worker-job-index', type=int, default=int(environ.get("JOB_COMPLETION_INDEX") or -1), help='Index of the worker in a scheduled job, compatible with JOB_COMPLETION_INDEX https://kubernetes.io/docs/tasks/job/indexed-parallel-processing-static/')
 @click.option('--first-worker-partition-index', default=int(environ.get("FIRST_WORKER_PARTITION_INDEX") or 0), show_default=True, type=int, help='1st partition index')
+@click.option('--partition-to-hour', type=bool, default=bool(False if environ.get("PARTITION_TO_HOUR") == "false" else True), show_default=True, help='Break time partition from date into hour, use if memory allocation for date is too big')
 @click.option('-b', '--partition-batch-size', default=environ.get("PARTITION_BATCH_SIZE", 10000), show_default=True, type=int,
               help='The number of blocks to export in partition.')
 @click.option('-p', '--provider-uri', default=environ.get("PROVIDER_URI", 'https://mainnet.infura.io'), show_default=True, type=str,
@@ -51,8 +52,8 @@ logging_basic_config()
 @click.option('-e', '--entity-types', default=environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_NO_TRACE_SUPPORT)), show_default=True, type=str,
               help='The list of entity types to export.')
 @click.option('-c', '--chain', default='ethereum', show_default=True, type=str, help='The chain network to connect to.')
-def export_all(start, end, worker_job_index, first_worker_partition_index, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size, entity_types,
+def export_all(start, end, worker_job_index, first_worker_partition_index, partition_to_hour, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size, entity_types,
                chain='ethereum'):
     """Exports all data for a range of blocks."""
-    export_all_common(get_partitions(start, end, partition_batch_size, provider_uri, worker_job_index, first_worker_partition_index),
+    export_all_common(get_partitions(start, end, partition_batch_size, provider_uri, worker_job_index, first_worker_partition_index, partition_to_hour),
                       output_dir, provider_uri, max_workers, export_batch_size, chain, parse_entity_types(entity_types))
