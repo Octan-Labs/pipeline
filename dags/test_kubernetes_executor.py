@@ -27,13 +27,12 @@ dag = DAG('Example_Kubernetes_Executor',
 # env_var = [k8s.V1EnvVar(name='FOO', value='foo'), k8s.V1EnvVar(name='BAR', value='bar')]
 # configmaps = [k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='my-configs'))]
 
-cmd = "{{ dag_run.conf['numbers'] }}"
 
 ingest_data = KubernetesPodOperator(
             image="noobmdev/example_app:test",
             cmds=[
-                cmd
-            ]
+                "{{ dag_run.conf['numbers'] }}"
+            ],
             # arguments=["ingest-data"],
             # env_vars=env_var,
             # env_from=configmaps,
