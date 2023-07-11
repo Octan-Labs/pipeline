@@ -35,6 +35,9 @@ logger = logging.getLogger('export_all')
 
 def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_size, chain, entity_types):
     for batch_start_block, batch_end_block, partition_dir in partitions:
+        if batch_start_block is None or batch_end_block is None or partition_dir is None:
+            continue
+        
         # # # start # # #
 
         start_time = time()
@@ -51,7 +54,7 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
             padded_batch_start_block=padded_batch_start_block,
             padded_batch_end_block=padded_batch_end_block,
         )
-    
+
         all_file_mapping = {
             EntityType.BLOCK: '{output_dir}/blocks{partition_dir}/blocks_{file_name_suffix}'.format(
                 output_dir=output_dir,

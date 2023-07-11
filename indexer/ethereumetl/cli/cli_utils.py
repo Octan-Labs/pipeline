@@ -74,20 +74,24 @@ def get_partitions(start, end, partition_batch_size, provider_uri, worker_index,
             start_datetime = datetime.combine(start_date, datetime.min.time().replace(tzinfo=timezone.utc))
             if partition_to_hour is True:
                 for hour in range(24):
-                    if worker_index >= 0:
-                        if (worker_index + first_worker_partition_index) == index:
-                            batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
-                            partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
-                            yield batch_start_block, batch_end_block, partition_dir
+                    if worker_index >= 0 and (worker_index + first_worker_partition_index) != index:
+                        yield None, None, None
                     else:
                         batch_start_block, batch_end_block = eth_service.get_block_range_for_hour(start_datetime + timedelta(hours=hour))
                         partition_dir = '/date={partition_date!s}/hour={partition_hour!s}'.format(partition_date=start_datetime.date(), partition_hour=hour)
                         yield batch_start_block, batch_end_block, partition_dir
+                    
                     index += 1
             else:
-                batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_datetime.date())
-                partition_dir = '/date={partition_date!s}'.format(partition_date=start_datetime.date())
-                yield batch_start_block, batch_end_block, partition_dir
+                if worker_index >= 0 and (worker_index + first_worker_partition_index) != index:
+                    yield None, None, None
+                else:
+                    batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_datetime.date())
+                    partition_dir = '/date={partition_date!s}'.format(partition_date=start_datetime.date())
+                    yield batch_start_block, batch_end_block, partition_dir
+                
+                index += 1
+
             start_date += day
 
     elif is_block_range(start, end):
