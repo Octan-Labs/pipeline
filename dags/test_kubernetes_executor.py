@@ -29,7 +29,10 @@ dag = DAG('Example_Kubernetes_Executor',
 
 ingest_data = KubernetesPodOperator(
             image="noobmdev/example_app:test",
-            arguments=["ingest-data"],
+            cmds=[
+                "{{ dag_run.conf['numbers'] }}"
+            ]
+            # arguments=["ingest-data"],
             # env_vars=env_var,
             # env_from=configmaps,
             name=f"ingest_data",
