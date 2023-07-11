@@ -19,7 +19,7 @@ default_args = {
 
 dag = DAG('Pre_txns_Spark_job',
           default_args=default_args,
-          description='Kubernetes Pod Operator - Demonstration Dag',
+          description='Kubernetes Pod Operat  or - Demonstration Dag',
           schedule_interval=None,
           start_date=datetime(2023, 7, 10),
           catchup=False)
@@ -84,6 +84,7 @@ spark_pi = KubernetesPodOperator(
               "spark.sql.sources.ignoreDataLocality.enabled=true",
               "--conf",
               "spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version=2",
+              "s3a://datateam-spark/jobs/pre-tx.py",
               "s3a://datateam-spark/jobs/pre-tx.py"
             ],
             # env_vars=env_var,
