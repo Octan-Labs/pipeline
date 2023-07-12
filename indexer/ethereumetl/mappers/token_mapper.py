@@ -39,7 +39,7 @@ class EthTokenMapper(object):
         return pa.schema([
             pa.field('address', pa.string(), nullable=False),
             pa.field('symbol', pa.string()),
-            pa.field('name', pa.list_(pa.string())),
+            pa.field('name', pa.string()),
             pa.field('decimals', pa.string()),
             pa.field('total_supply', pa.string()),
             pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
