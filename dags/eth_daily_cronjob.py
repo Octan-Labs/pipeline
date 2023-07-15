@@ -18,7 +18,7 @@ default_args = {
     'is_delete_operator_pod': True
 }
 
-dag = DAG('BSC Indexer Daily',
+dag = DAG('ETH daily indexing',
           default_args=default_args,
           description='Run eth indexer daily',
           schedule="@daily",
@@ -59,7 +59,7 @@ secrets = [
     ),
 ]
 
-eth_daily_cronjob = KubernetesPodOperator(
+eth_daily_indexing_cronjob = KubernetesPodOperator(
             image='octanlabs/ethereumetl:0.0.3',
             arguments=['export_all'],
             env_vars=env_vars,
@@ -74,4 +74,4 @@ eth_daily_cronjob = KubernetesPodOperator(
             dag=dag,
         )
 
-eth_daily_cronjob
+eth_daily_indexing_cronjob
