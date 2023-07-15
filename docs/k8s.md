@@ -1,5 +1,5 @@
 bin/spark-submit \
---master k8s://F555453741847D0C5223F7254EDF95AD.gr7.ap-southeast-1.eks.amazonaws.com \
+--master '${CLUSTER_URL}'  \
 --deploy-mode cluster \
 --name 'Hello world' \
 --conf spark.eventLog.dir=s3a://datateam-spark/logs \
