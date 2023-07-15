@@ -18,7 +18,7 @@ default_args = {
     'is_delete_operator_pod': True
 }
 
-dag = DAG('ETH daily indexing',
+dag = DAG('eth_daily_indexing',
           default_args=default_args,
           description='Run eth indexer daily',
           schedule="@daily",
