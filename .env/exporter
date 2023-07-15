@@ -1,7 +1,8 @@
-START=2020-08-30
+START=2023-01-01
 END=2023-07-05
 MAX_WORKERS=10
-PROVIDER_URI=https://bsc-dataseed.binance.org
+# PROVIDER_URI=https://bsc-dataseed.binance.org
+PROVIDER_URI=https://api.zan.top/node/v1/bsc/mainnet/public
 OUTPUT_DIR=s3://bsc-archive
 FSSPEC_S3_ENDPOINT_URL=https://play.min.io:9000
 FSSPEC_CACHE_REGIONS=true
