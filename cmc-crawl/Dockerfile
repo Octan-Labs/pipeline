@@ -6,8 +6,7 @@ COPY package*.json ./
 
 RUN npm install
 
-USER ADMIN
-
 COPY . .
 
-CMD ["mkdir", "cmc_historical"]
+RUN mkdir cmc_historical
+CMD ["node", "get-cmc-historical-price-top-1000.js"]

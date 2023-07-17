@@ -7,11 +7,14 @@ services:
       # build from Dockerfile
       context: .
       dockerfile: Dockerfile
-    image: imageName
+    image: cmc-crawl:0.1.0
     environment:
-      - START_TIME=value
-      - END_TIME=
-
+      - START_TIME=1689373873
+      - END_TIME=1689560769
+      - BUCKET=BUCKET_NAME
+      - REGION=ap-southeast-1
+      - ACCESS_KEY=AWS_ACCESS_KEY_ID
+      - SECRET_KEY=AWS_SECRET_KEY
     volumes:
-      - ./cmc-crawl:/app/cmc-crawl
+      - ./:/cmc-crawl
     command: npm run start
