@@ -20,17 +20,15 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
         + [X] kafka
         + [X] kinesis
         + [X] postgres
-        + [ ] pulsar
+        + [ ] clickhouse
     + trace specs:
         + [X] parity traces
         + [X] geth traces (only export)
-- hive standalone metastore:
-    + support hive 3
+- scheduler/monitor: airflow
 - graph processing
     + [X] graphframes (deprecated)
     + [X] graphscope
 - resilient in memory distributed storage
-    + [X] spark rdd (deprecated)
     + [ ] vineyard v6d
 - algorithm:
     + [X] contract classification
