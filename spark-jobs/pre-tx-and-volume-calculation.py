@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import argparse, sys
@@ -9,39 +9,87 @@ import argparse, sys
 parser=argparse.ArgumentParser()
 
 parser.add_argument("-b", "--base_path", help="S3 bucket base path", required=True)
-parser.add_argument("-d", "--date", help="Calculate date", required=True)
+parser.add_argument("-s", "--start", help="Start date to calculate", required=True)
+parser.add_argument("-e", "--end", help="End date to calculate", required=True)
 parser.add_argument("-n", "--name", help="Name of chain to calculate [bsc|eth|polygon]", required=True)
 parser.add_argument("-s", "--symbol", help="Symbol of chain to calculate [BNB|ETH|MATIC]", required=True)
 
 args=parser.parse_args()
 
-
-# In[ ]:
-
-
-# base_path = "s3a://octan-labs-bsc/export-by-date"
 base_path = args.base_path
-date = args.date
-name =  args.name
-symbol =  args.symbol
+start = args.start
+end = args.end
+name = args.name # [bsc|eth|polygon]
+symbol = args.symbol  # [BNB|ETH|MATIC]
+
+
+# In[2]:
+
+
+# base_path = "."
+# start = "2020-10-31"
+# end = "2020-10-31"
+# name = "bsc" # [bsc|eth|polygon]
+# symbol = "BNB" # [BNB|ETH|MATIC]
+
+
+# In[3]:
+
+
+from datetime import datetime, timedelta
+
+def get_dates_in_range(start, end):
+    # Convert start and end strings to datetime objects
+    start_date = datetime.strptime(start, "%Y-%m-%d")
+    end_date = datetime.strptime(end, "%Y-%m-%d")
+
+    # Create a list to store the dates within the range
+    dates_list = []
+
+    # Loop through the dates and append them to the list
+    current_date = start_date
+    while current_date <= end_date:
+        dates_list.append(current_date.strftime("%Y-%m-%d"))
+        current_date += timedelta(days=1)
+
+    return dates_list
+
+
+# In[4]:
+
+
+dates = get_dates_in_range(start, end)
+
+num_of_date = len(dates)
+time_range = ""
+
+if(num_of_date == 1):
+    time_range = "date"
+elif(num_of_date < 7 or num_of_date == 7):
+    time_range = "week"
+else:
+    time_range = "month"
 
 
 # In[ ]:
+
+
+
+
+
+# In[5]:
 
 
 from pyspark.sql.types import StructType, StructField, StringType, LongType, DecimalType, DoubleType
 from pyspark.sql import SparkSession
 
 
-# In[ ]:
-
-
-# In[2]:
+# In[6]:
 
 
 spark = SparkSession \
     .builder \
-    .appName("Preprocessdata") \
+    .appName("PreTxAndVolumeCalculator") \
     .getOrCreate()
 
 
@@ -51,7 +99,7 @@ spark = SparkSession \
 
 
 
-# In[23]:
+# In[7]:
 
 
 tokens_schema = StructType([ \
@@ -64,7 +112,7 @@ tokens_schema = StructType([ \
   ])
 
 
-# In[4]:
+# In[8]:
 
 
 cmc_historical_schema = StructType([ \
@@ -82,7 +130,7 @@ cmc_historical_schema = StructType([ \
   ])
 
 
-# In[5]:
+# In[9]:
 
 
 cmc_address_schema = StructType([ \
@@ -93,27 +141,27 @@ cmc_address_schema = StructType([ \
   ])
 
 
-# In[6]:
+# In[ ]:
 
 
 
+
+
+# In[10]:
+
+
+token_transfers_df = spark.read.format("parquet") \
+    .load(list(map(lambda date: "{base_path}/token_transfers/date={date}/*.parquet".format(base_path = base_path, date = date), dates)))
 
 
 # In[11]:
 
 
-token_transfers_df = spark.read.format("parquet") \
-    .load("{base_path}/token_transfers/date={date}/*/*.parquet".format(base_path = base_path, date = date))
+transactions_df = spark.read.format("parquet") \
+    .load(list(map(lambda date: "{base_path}/transactions/date={date}/*.parquet".format(base_path = base_path, date = date), dates)))
 
 
 # In[12]:
-
-
-transactions_df = spark.read.format("parquet") \
-    .load("{base_path}/transactions/date={date}/*/*.parquet".format(base_path = base_path, date = date))
-
-
-# In[24]:
 
 
 tokens_df = spark.read.format("csv") \
@@ -122,49 +170,42 @@ tokens_df = spark.read.format("csv") \
     .load("{base_path}/cmc_tokens/cmc_{name}_tokens.csv".format(base_path = base_path, name = name))
 
 
-# In[12]:
-
-
-# cmc_historicals_df = spark.read.format("csv") \
-#     .option("header", True) \
-#     .schema(cmc_historical_schema) \
-#     .load("s3a://octan-labs-bsc/cmc_historicals/*.csv")
-
-
 # In[13]:
-
-
-# cmc_addresses_df = spark.read.format("csv") \
-#     .option("header", True) \
-#     .schema(cmc_address_schema) \
-#     .load("s3a://octan-labs-bsc/cmc_addresses/*.csv")
-
-
-# In[ ]:
 
 
 cmc_historicals_df = spark.read.format("csv") \
     .schema(cmc_historical_schema) \
     .load("./cmc_historicals/*.csv")
+
+
+# In[14]:
+
+
 cmc_addresses_df = spark.read.format("csv") \
     .option("header", True) \
     .schema(cmc_address_schema) \
     .load("./cmc_addresses/*.csv")
 
 
+# In[15]:
+
+
+cmc_addresses_df = cmc_addresses_df.dropDuplicates(["{name}".format(name = name)])
+
+
 # In[ ]:
 
 
 
 
 
-# In[15]:
+# In[16]:
 
 
 from pyspark.sql.functions import col, format_number
 
 
-# In[16]:
+# In[17]:
 
 
 transactions_df = transactions_df.drop(col("input"))
@@ -176,7 +217,7 @@ transactions_df = transactions_df.drop(col("input"))
 
 
 
-# In[17]:
+# In[18]:
 
 
 token_transfers_df.createOrReplaceTempView("token_transfers")
@@ -186,7 +227,7 @@ cmc_historicals_df.createOrReplaceTempView("cmc_historicals")
 cmc_addresses_df.createOrReplaceTempView("cmc_addresses")
 
 
-# In[20]:
+# In[22]:
 
 
 # change name, symbol foreach networks
@@ -198,7 +239,7 @@ from pyspark.sql import functions as F
 start_time = time.time()
 
 
-result_df = spark.sql("""
+pre_tx_df = spark.sql("""
 SELECT 
     tx.block_number,
     tx.from_address,
@@ -238,7 +279,7 @@ SELECT
 FROM token_transfers tt
 LEFT JOIN transactions tx ON tt.transaction_hash = tx.hash
 LEFT JOIN tokens t ON LOWER(tt.token_address) = LOWER(t.address)
-LEFT JOIN (SELECT {name}, rank FROM cmc_addresses GROUP BY {name}, rank LIMIT 1) cmc_addr 
+LEFT JOIN cmc_addresses cmc_addr 
     ON tt.token_address = cmc_addr.{name}
 LEFT JOIN cmc_historicals cmc_h 
     ON (
@@ -267,15 +308,24 @@ time.time() - start_time
 
 
 
-# In[21]:
+# In[20]:
 
 
 start_time = time.time()
 
-result_df.repartition(1) \
+pre_tx_df.repartition(1) \
     .write \
     .option("header",True) \
-    .csv("{base_path}/pre-tx/date={date}/".format(base_path = base_path, date = date))
+    .csv(
+        "{base_path}/pre_tx/{time_range}/start={start}_end={end}/" \
+            .format(
+                base_path = base_path, \
+                time_range = time_range, \
+                start = start, \
+                end = end \
+            ) \
+    )
+
 
 time.time() - start_time
 
@@ -286,7 +336,78 @@ time.time() - start_time
 
 
 
+# In[23]:
+
+
+pre_tx_df.createOrReplaceTempView("pre_tx_df")
+
+
+# In[ ]:
+
+
+
+
+
 # In[24]:
+
+
+# change name, symbol foreach networks
+
+import time
+from pyspark.sql.functions import format_number
+
+
+start_time = time.time()
+
+tx_volume_df = spark.sql("""
+SELECT from_address as address, SUM(volume) as volume FROM pre_tx_df
+GROUP BY from_address
+UNION ALL
+SELECT to_address as address, SUM(volume) as volume FROM pre_tx_df
+GROUP BY to_address
+UNION ALL
+SELECT token_contract as address, SUM(volume) as volume FROM pre_tx_df
+GROUP BY token_contract
+""").withColumn('volume', format_number('volume', 10)) 
+
+
+time.time() - start_time
+
+
+# In[ ]:
+
+
+
+
+
+# In[25]:
+
+
+start_time = time.time()
+
+tx_volume_df.repartition(1) \
+    .write \
+    .option("header",True) \
+    .csv(
+        "{base_path}/tx_volumes/{time_range}/start={start}_end={end}/" \
+            .format(
+                base_path = base_path, \
+                time_range = time_range, \
+                start = start, \
+                end = end \
+            ) \
+    )
+
+time.time() - start_time
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
 
 
 spark.stop()
