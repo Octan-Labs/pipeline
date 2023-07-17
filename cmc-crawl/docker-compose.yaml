@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  nodejs:
+    build:
+      # build from Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    image: imageName
+    environment:
+      - START_TIME=value
+      - END_TIME=
+
+    volumes:
+      - ./cmc-crawl:/app/cmc-crawl
+    command: npm run start
