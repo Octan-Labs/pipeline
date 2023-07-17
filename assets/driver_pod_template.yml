@@ -18,7 +18,7 @@ kind: Pod
 metadata:
   labels:
     spark-role: driver
-  namespace: spark-jobs
+  namespace: spark
 spec:
   serviceAccountName: spark
   affinity: 
