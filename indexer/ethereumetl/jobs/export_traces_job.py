@@ -49,7 +49,6 @@ class ExportTracesJob(BaseJob):
 
         self.web3 = web3
 
-        # TODO: use batch_size when this issue is fixed https://github.com/paritytech/parity-ethereum/issues/9822
         self.batch_work_executor = BatchWorkExecutor(starting_batch_size=batch_size, max_workers=max_workers, job_name=type(self).__name__)
         self.item_exporter = item_exporter
 
@@ -70,10 +69,12 @@ class ExportTracesJob(BaseJob):
         )
 
     def _export_batch(self, block_number_batch):
-        # # TODO: Change to len(block_number_batch) > 0 when this issue is fixed
-        # # https://github.com/paritytech/parity-ethereum/issues/9822
-        # assert len(block_number_batch) == 1
-        block_number = block_number_batch[0]
+        assert len(block_number_batch) > 0
+
+        filter_params = {
+            'fromBlock': hex(block_number_batch[0]),
+            'toBlock': hex(block_number_batch[-1]),
+        }
 
         all_traces = []
 
@@ -85,9 +86,7 @@ class ExportTracesJob(BaseJob):
             daofork_traces = self.special_trace_service.get_daofork_traces()
             all_traces.extend(daofork_traces)
 
-        # TODO: Change to traceFilter when this issue is fixed
-        # https://github.com/paritytech/parity-ethereum/issues/9822
-        json_traces = self.web3.parity.traceBlock(block_number)
+        json_traces = self.web3.parity.traceFilter(filter_params)
 
         if json_traces is None:
             raise ValueError('Response from the node is None. Is the node fully synced? Is the node started with tracing enabled? Is trace_block API enabled?')
