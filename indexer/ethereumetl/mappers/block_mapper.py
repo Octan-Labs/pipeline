@@ -25,6 +25,7 @@ from ethereumetl.domain.block import EthBlock
 from ethereumetl.mappers.transaction_mapper import EthTransactionMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 import pyarrow as pa
+from decimal import Decimal
 
 class EthBlockMapper(object):
     def __init__(self, transaction_mapper=None):
@@ -79,7 +80,7 @@ class EthBlockMapper(object):
             'receipts_root': block.receipts_root,
             'miner': block.miner,
             'difficulty': block.difficulty,
-            'total_difficulty': block.total_difficulty,
+            'total_difficulty': Decimal(block.total_difficulty) if block.total_difficulty is not None else Decimal(0),
             'size': block.size,
             'extra_data': block.extra_data,
             'gas_limit': block.gas_limit,
