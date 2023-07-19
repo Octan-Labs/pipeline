@@ -60,7 +60,7 @@ secrets = [
 ]
 
 bsc_daily_indexing_cronjob = KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.3',
+            image='octanlabs/ethereumetl:0.0.4',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=secrets,
