@@ -35,3 +35,10 @@ jobs:
           context: "{{defaultContext}}:indexer"
           push: true
           tags: octanlabs/ethereumetl:latest, octanlabs/ethereumetl:${{ steps.version_info.outputs.SOURCE_TAG }}
+      -
+        name: Build and push cmc crawl image
+        uses: docker/build-push-action@v4
+        with:
+          context: "{{defaultContext}}:cmc-crawl"
+          push: true
+          tags: octanlabs/cmc-historical-crawl:latest, octanlabs/cmc-historical-crawl:${{ steps.version_info.outputs.SOURCE_TAG }}

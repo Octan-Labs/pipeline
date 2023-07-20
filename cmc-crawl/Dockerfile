@@ -1,12 +1,11 @@
-FROM node:20-alpine
+FROM node:18-alpine
 
-WORKDIR .
+WORKDIR /cmc-crawl
 
-COPY package*.json ./
+COPY package*.json /cmc-crawl
 
 RUN npm install
 
-COPY . .
+COPY . /cmc-crawl
 
-RUN mkdir cmc_historical
-CMD ["node", "get-cmc-historical-price-top-1000.js"]
+CMD ["node", "start"]

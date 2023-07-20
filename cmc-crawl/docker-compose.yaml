@@ -2,19 +2,12 @@
 version: "3.8"
 
 services:
-  nodejs:
+  cmc_historical_crawl:
     build:
-      # build from Dockerfile
       context: .
       dockerfile: Dockerfile
-    image: cmc-crawl:0.1.0
-    environment:
-      - START_TIME=1689373873
-      - END_TIME=1689560769
-      - BUCKET=BUCKET_NAME
-      - REGION=ap-southeast-1
-      - ACCESS_KEY=AWS_ACCESS_KEY_ID
-      - SECRET_KEY=AWS_SECRET_KEY
+    image: octanlabs/cmc-historical-crawl:latest
+    env_file: ./.env
     volumes:
       - ./:/cmc-crawl
-    command: npm run start
+    command: npm start
