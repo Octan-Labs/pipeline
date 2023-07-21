@@ -67,7 +67,7 @@ bsc_daily_indexing_cronjob = KubernetesPodOperator(
                 requests={
                     'memory': '40G',
                 },
-            )
+            ),
             name='bsc_indexer',
             task_id='bsc_indexer',
             retries=5,
