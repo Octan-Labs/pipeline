@@ -24,11 +24,9 @@ dag = DAG('eth_daily_indexing',
           schedule="@daily",
           catchup=False)
 
-
-yesterday = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
 env_vars = [
-    k8s.V1EnvVar(name='START', value=yesterday),
-    k8s.V1EnvVar(name='END', value=yesterday),
+    k8s.V1EnvVar(name='START', value="{{ prev_execution_date || ds }}"),
+    k8s.V1EnvVar(name='END', value="{{ prev_execution_date || ds }}"),
     k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
     k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
 ]
