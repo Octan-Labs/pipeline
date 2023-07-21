@@ -24,19 +24,32 @@ dag = DAG('cmc_historical_price_daily_indexing',
           schedule="@daily",
           catchup=False)
 
-today = "{{ execution_date | ds }}"
-yesterday = "{{ yesterday_ds }}"
-
-start_time = yesterday.strptime(date_str, '%m-%d-%Y').strftime("%s")
-end_time = today.strptime(yesterday_ds, '%m-%d-%Y').strftime("%s")
+yesterday = "{{ macros.ds_add(ds, -1)}}"
 
 env_vars = [
-    k8s.V1EnvVar(name='START_TIME', value=start_time),
-    k8s.V1EnvVar(name='END_TIME', value=end_time),
-    k8s.V1EnvVar(name='AWS_S3_BUCKET', value='octan-labs-bsc/cmc_historicals'), 
+    k8s.V1EnvVar(name='START_DATE', value=value="{{ data_interval_start.subtract(days=1) | ds }}"),
+    k8s.V1EnvVar(name='END_DATE', value=value="{{ data_interval_start.subtract(days=1) | ds }}"),
     k8s.V1EnvVar(name='S3_REGION', value='ap-southeast-1')
 ]
 secrets = [
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_S3_BUCKET_HISTORICAL',
+        secret='cmc-indexer-secret',
+        key='bucket_historical'
+    ),
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_S3_BUCKET_TOP_CMC',
+        secret='cmc-indexer-secret',
+        key='bucket_top_cmc'
+    ),
+    Secret(
+        deploy_type='env',
+        deploy_target='CMC_API_KEY',
+        secret='cmc-indexer-secret',
+        key='cmc_api_key'
+    ),
     Secret(
         deploy_type='env',
         deploy_target='AWS_ACCESS_KEY_ID',

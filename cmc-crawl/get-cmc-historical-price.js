@@ -9,15 +9,15 @@ const {
 } = require("./utils");
 require("dotenv").config();
 
-const timeStart = process.env.START_TIME;
-const timeEnd = process.env.END_TIME;
+const startDate = process.env.START_DATE;
+const endDate = process.env.END_DATE;
 const HISTORICAL_BUCKET = process.env.AWS_S3_BUCKET_HISTORICAL;
 const TOP_CMC_BUCKET = process.env.AWS_S3_BUCKET_TOP_CMC;
 const REGION = process.env.S3_REGION;
 const ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID;
 const SECRET_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 
-if (!timeStart || !timeEnd) {
+if (!startDate || !endDate) {
 	console.log("TIME ENV is required");
 	process.exit(1);
 }
@@ -32,6 +32,9 @@ if (
 	console.log("AWS ENV is required");
 	process.exit(1);
 }
+
+const timeStart = Math.floor(new Date(startDate).setUTCHours(0, 0, 0) / 1000);
+const timeEnd = Math.floor(new Date(endDate).setUTCHours(23, 59, 59) / 1000);
 
 const filename = `cmc_historical_price_${timeStart}_${timeEnd}.csv`;
 
@@ -82,15 +85,11 @@ async function main() {
 			TOP_CMC_BUCKET,
 			topCmcFilename
 		);
-
 		const topCMC = JSON.parse(data.Body.toString());
-
 		for (const { id, rank } of topCMC) {
 			await getHistoricalPriceCMC(id, rank);
 		}
-
 		writeStream.end();
-
 		await uploadToS3(
 			ACCESS_KEY,
 			SECRET_KEY,
