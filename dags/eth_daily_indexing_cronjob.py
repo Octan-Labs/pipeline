@@ -24,6 +24,8 @@ dag = DAG('eth_daily_indexing',
           schedule="@daily",
           catchup=False)
 
+data_interval_start = "{{ data_interval_start }}"
+
 env_vars = [
     k8s.V1EnvVar(name='START', value="{{ data_interval_start - macros.timedelta(days=1) | ds }}"),
     k8s.V1EnvVar(name='END', value="{{ data_interval_start - macros.timedelta(days=1) | ds }}"),
