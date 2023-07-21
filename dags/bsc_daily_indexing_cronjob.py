@@ -1,4 +1,4 @@
-from airflow import DAG, macros
+from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
@@ -25,8 +25,8 @@ dag = DAG('bsc_daily_indexing',
           catchup=False)
 
 env_vars = [
-    k8s.V1EnvVar(name='START', value="{{ macros.ds_add(data_interval_start, -1) | ds }}"),
-    k8s.V1EnvVar(name='END', value="{{ macros.ds_add(data_interval_start, -1) | ds }}"),
+    k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+    k8s.V1EnvVar(name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
     k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
     k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
 ]
