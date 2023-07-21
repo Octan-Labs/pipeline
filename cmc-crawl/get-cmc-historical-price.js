@@ -46,13 +46,19 @@ const writeStream = fs.WriteStream(`./${filename}`);
 
 async function getHistoricalPriceCMC(id, rank) {
 	try {
-		// id,rank,open,close,timestamp
+		/**
+		 * @param id CMC_ID of token get from s3
+		 * @param timeStart start time to get historical price
+		 * @param timeEnd end time to get historical price
+		 * @returns historical price of token
+		 */
 		const res = await instance.get(
 			`/historical?id=${id}&convertId=2781&timeStart=${timeStart}&timeEnd=${timeEnd}`
 		);
 		const quotes = res.data.data.quotes;
 
 		for (const { quote } of quotes) {
+			// id,rank,open,close,timestamp
 			const row = [
 				id,
 				rank,

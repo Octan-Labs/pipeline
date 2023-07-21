@@ -23,6 +23,25 @@ const limit = process.env.LIMIT || 5000;
 
 async function main() {
 	try {
+		/**
+		 * Get top token from CMC sort by marketcap rank
+		 * @param limit size limit 's number of top token, default 5000
+		 * @param CMC_API_KEY CMC API key (get from https://pro.coinmarketcap.com/login/)
+		 * @returns List top CMC
+		 * example
+		 * [
+				{
+					"id": 1, # CMC_ID
+					"rank": 1,
+					"name": "Bitcoin",
+					"symbol": "BTC",
+					"slug": "bitcoin",
+					"is_active": 1,
+					"platform": null
+				}
+			]
+		 * !!! CMC_ID is REQUIRED to get historical price of its token
+		 */
 		const res = await axios.get(
 			`https://pro-api.coinmarketcap.com/v1/cryptocurrency/map?sort=cmc_rank&limit=${limit}`,
 			{
@@ -35,6 +54,7 @@ async function main() {
 
 		fs.writeFileSync(`./${topCmcFilename}`, JSON.stringify(res.data.data));
 
+		// sync top CMC to s3
 		await uploadToS3(ACCESS_KEY, SECRET_KEY, REGION, BUCKET, topCmcFilename);
 	} catch (error) {
 		console.log("wait 10 seconds to continue");
