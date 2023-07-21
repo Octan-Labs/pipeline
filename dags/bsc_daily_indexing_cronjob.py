@@ -26,8 +26,8 @@ dag = DAG('bsc_daily_indexing',
 
 
 env_vars = [
-    k8s.V1EnvVar(name='START', value="{{ prev_execution_date || ds }}"),
-    k8s.V1EnvVar(name='END', value="{{ prev_execution_date || ds }}"),
+    k8s.V1EnvVar(name='START', value="{{ data_interval_start | ds }}"),
+    k8s.V1EnvVar(name='END', value="{{ data_interval_start | ds }}"),
     k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
     k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
 ]
