@@ -1,0 +1,17 @@
+{
+	"name": "cmc-crawl",
+	"version": "1.0.0",
+	"description": "",
+	"main": "get-cmc-historical-price.js",
+	"scripts": {
+		"top_cmc": "node get-top-cmc.js",
+		"historical": "node get-cmc-historical-price.js"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"aws-sdk": "^2.1415.0",
+		"axios": "^1.4.0",
+		"dotenv": "^16.3.1"
+	}
+}

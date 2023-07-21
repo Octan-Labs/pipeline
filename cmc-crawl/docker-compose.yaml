@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  top_cmc:
+    build:
+      context: .
+      dockerfile: top-cmc.Dockerfile
+    image: octanlabs/top-cmc-crawl:latest
+    env_file: ./.env
+    command: npm run top_cmc
+  cmc_historical_crawl:
+    build:
+      context: .
+      dockerfile: historical.Dockerfile
+    image: octanlabs/cmc-historical-crawl:latest
+    env_file: ./.env
+    command: npm run historical
