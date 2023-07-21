@@ -112,4 +112,4 @@ with DAG(
             failed_states=["false"]
         )
 
-    waiting_for_cmc_historical_index >> eth_daily_indexing_cronjob >> trigger_pre_tx_and_volume_job >> trigger_uaw_job
+    [waiting_for_cmc_historical_index, eth_daily_indexing_cronjob] >> trigger_pre_tx_and_volume_job >> trigger_uaw_job

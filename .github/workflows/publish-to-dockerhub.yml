@@ -29,12 +29,18 @@ jobs:
           echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
           echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
       -
+        name: Semver
+        id: sem_ver
+        run: |
+          echo ::set-output name=SEM_VER::${SOURCE_TAG##*-}
+      -
         name: Build and push
         uses: docker/build-push-action@v4
         with:
           context: "{{defaultContext}}:indexer"
           push: true
-          tags: octanlabs/ethereumetl:latest, octanlabs/ethereumetl:${{ steps.version_info.outputs.SOURCE_TAG }}
+          if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'ethereumetl-') }}
+          tags: octanlabs/ethereumetl:latest, octanlabs/ethereumetl:${{ steps.sem_ver.outputs.SEM_VER }}
       -
         name: Build and push cmc crawl image
         uses: docker/build-push-action@v4
@@ -42,7 +48,8 @@ jobs:
           context: "{{defaultContext}}:cmc-crawl"
           file: historical.Dockerfile
           push: true
-          tags: octanlabs/cmc-historical-crawl:latest, octanlabs/cmc-historical-crawl:${{ steps.version_info.outputs.SOURCE_TAG }}
+          if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'cmc-historical-crawl-') }}
+          tags: octanlabs/cmc-historical-crawl:latest, octanlabs/cmc-historical-crawl:${{ steps.sem_ver.outputs.SEM_VER }}
       -
         name: Build and push cmc crawl image
         uses: docker/build-push-action@v4
@@ -50,4 +57,5 @@ jobs:
           context: "{{defaultContext}}:cmc-crawl"
           file: historical.Dockerfile
           push: true
-          tags: octanlabs/top-cmc-crawl:latest, octanlabs/top-cmc-crawl:${{ steps.version_info.outputs.SOURCE_TAG }}
+          if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'top-cmc-crawl-') }}
+          tags: octanlabs/top-cmc-crawl:latest, octanlabs/top-cmc-crawl:${{ steps.sem_ver.outputs.SEM_VER }}
