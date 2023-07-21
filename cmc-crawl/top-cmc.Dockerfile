@@ -8,4 +8,4 @@ RUN npm install
 
 COPY . /cmc-crawl
 
-CMD ["node", "start"]
+CMD ["node", "run", "top_cmc"]
