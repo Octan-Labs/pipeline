@@ -25,8 +25,8 @@ dag = DAG('eth_daily_indexing',
           catchup=False)
 
 env_vars = [
-    k8s.V1EnvVar(name='START', value="{{ macros.ds_add(data_interval_start | ds, -1) }}"),
-    k8s.V1EnvVar(name='END', value="{{ macros.ds_add(data_interval_start | ds, -1) }}"),
+    k8s.V1EnvVar(name='START', value="{{ data_interval_start - macros.timedelta(days=1) | ds }}"),
+    k8s.V1EnvVar(name='END', value="{{ data_interval_start - macros.timedelta(days=1) | ds }}"),
     k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
     k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
 ]
