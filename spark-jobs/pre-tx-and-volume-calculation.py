@@ -12,7 +12,7 @@ parser.add_argument("-b", "--base_path", help="S3 bucket base path", required=Tr
 parser.add_argument("-s", "--start", help="Start date to calculate", required=True)
 parser.add_argument("-e", "--end", help="End date to calculate", required=True)
 parser.add_argument("-n", "--name", help="Name of chain to calculate [bsc|eth|polygon]", required=True)
-parser.add_argument("-s", "--symbol", help="Symbol of chain to calculate [BNB|ETH|MATIC]", required=True)
+parser.add_argument("-sy", "--symbol", help="Symbol of chain to calculate [BNB|ETH|MATIC]", required=True)
 
 args=parser.parse_args()
 
