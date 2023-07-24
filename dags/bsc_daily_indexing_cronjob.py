@@ -2,8 +2,6 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from airflow.sensors.external_task import ExternalTaskSensor
 
 from kubernetes.client import models as k8s
 
@@ -79,38 +77,4 @@ with DAG(
                 retry_delay=timedelta(minutes=5),
             )
 
-    waiting_for_cmc_historical_index = ExternalTaskSensor(
-            task_id='waiting_for_cmc_historical_index',
-            external_dag_id='cmc_historical_price_daily_indexing',
-            external_task_id='cmc_daily_historical_price_indexer'
-        )
-
-    base_path = "s3a://octan-labs-bsc/export-by-date"
-
-    trigger_pre_tx_and_volume_job = TriggerDagRunOperator(
-            task_id='trigger_pre_tx_and_volume_calculation_job',
-            trigger_dag_id='pre_tx_and_volume_calculation',
-            conf={
-                "base_path": base_path,
-                "start": "{{ data_interval_start.subtract(days=1) | ds }}",
-                "end": "{{ data_interval_start.subtract(days=1) | ds }}",
-                "name": "bsc",
-                "symbol": "BNB"
-            },
-            wait_for_completion=True,
-            failed_states=["false"]
-        )
-
-    trigger_uaw_job = TriggerDagRunOperator(
-            task_id='trigger_UAW_calculation_job',
-            trigger_dag_id='UAW_calculation',
-            conf={
-                "base_path": base_path,
-                "start": "{{ data_interval_start.subtract(days=1) | ds }}",
-                "end": "{{ data_interval_start.subtract(days=1) | ds }}",
-            },
-            wait_for_completion=True,
-            failed_states=["false"]
-        )
-
-    [waiting_for_cmc_historical_index, bsc_daily_indexing_cronjob] >> trigger_pre_tx_and_volume_job >> trigger_uaw_job
+    bsc_daily_indexing_cronjob
