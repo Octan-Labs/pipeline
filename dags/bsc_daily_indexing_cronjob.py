@@ -19,61 +19,62 @@ default_args = {
     'is_delete_operator_pod': True
 }
 
-dag = DAG('bsc_daily_indexing',
-          default_args=default_args,
-          description='Run bsc indexer daily',
-          schedule="@daily",
-          catchup=False)
+with DAG(
+    'bsc_daily_indexing',
+    default_args=default_args,
+    description='Run bsc indexer daily',
+    schedule="@daily",
+    catchup=False
+) as dag:
 
-env_vars = [
-    k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
-    k8s.V1EnvVar(name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
-    k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
-    k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
-]
+    env_vars = [
+        k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
+        k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
+    ]
 
-secrets = [
-    Secret(
-        deploy_type='env',
-        deploy_target='PROVIDER_URI',
-        secret='bsc-indexer-secret',
-        key='provider-uri'
-    ),
-    Secret(
-        deploy_type='env',
-        deploy_target='OUTPUT_DIR',
-        secret='bsc-indexer-secret',
-        key='output-dir'
-    ),
-    Secret(
-        deploy_type='env',
-        deploy_target='AWS_ACCESS_KEY_ID',
-        secret='indexer-aws-key',
-        key='aws_access_key_id'
-    ),
-    Secret(
-        deploy_type='env',
-        deploy_target='AWS_SECRET_ACCESS_KEY',
-        secret='indexer-aws-key',
-        key='aws_secret_access_key'
-    ),
-]
+    secrets = [
+        Secret(
+            deploy_type='env',
+            deploy_target='PROVIDER_URI',
+            secret='bsc-indexer-secret',
+            key='provider-uri'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='OUTPUT_DIR',
+            secret='bsc-indexer-secret',
+            key='output-dir'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='AWS_ACCESS_KEY_ID',
+            secret='indexer-aws-key',
+            key='aws_access_key_id'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='AWS_SECRET_ACCESS_KEY',
+            secret='indexer-aws-key',
+            key='aws_secret_access_key'
+        ),
+    ]
 
-bsc_daily_indexing_cronjob = KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.4',
-            arguments=['export_all'],
-            env_vars=env_vars,
-            secrets=secrets,
-            container_resources=k8s.V1ResourceRequirements(
-                requests={
-                    'memory': '40G',
-                },
-            ),
-            name='bsc_indexer',
-            task_id='bsc_indexer',
-            retries=5,
-            retry_delay=timedelta(minutes=5),
-            dag=dag,
-        )
+    bsc_daily_indexing_cronjob = KubernetesPodOperator(
+                image='octanlabs/ethereumetl:0.0.4',
+                arguments=['export_all'],
+                env_vars=env_vars,
+                secrets=secrets,
+                container_resources=k8s.V1ResourceRequirements(
+                    requests={
+                        'memory': '40G',
+                    },
+                ),
+                name='bsc_indexer',
+                task_id='bsc_indexer',
+                retries=5,
+                retry_delay=timedelta(minutes=5),
+            )
 
-bsc_daily_indexing_cronjob
+    bsc_daily_indexing_cronjob
