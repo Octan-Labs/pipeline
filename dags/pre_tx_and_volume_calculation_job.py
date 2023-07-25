@@ -82,11 +82,11 @@ pre_tx_and_volume_calculation = KubernetesPodOperator(
               "--conf",
               "spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version=2",
               "s3a://datateam-spark/jobs/pre-tx-and-volume-calculation.py",
-              "-b={{ dag_run.conf['base_path'] }}",
-              "-s={{ dag_run.conf['start'] }}",
-              "-e={{ dag_run.conf['end'] }}",
-              "-n={{ dag_run.conf['name'] }}",
-              "-s={{ dag_run.conf['symbol'] }}"
+              "--base_pat={{ dag_run.conf['base_path'] }}",
+              "--start={{ dag_run.conf['start'] }}",
+              "--end={{ dag_run.conf['end'] }}",
+              "--name={{ dag_run.conf['name'] }}",
+              "--symbol={{ dag_run.conf['symbol'] }}"
             ],
             name=f"pre-tx-and-volume-calculation",
             task_id=f"pre-tx-and-volume-calculation",
