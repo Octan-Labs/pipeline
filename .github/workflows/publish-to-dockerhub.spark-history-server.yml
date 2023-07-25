@@ -32,7 +32,7 @@ jobs:
         name: Semver
         id: sem_ver
         run: |
-            SEM_VER=$(echo ${{ steps.version_info.outputs.SOURCE_TAG }} | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+')
+            SEM_VER=$(echo ${{ steps.version_info.outputs.SOURCE_TAG }} | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
             echo ::set-output name=SEM_VER::$SEM_VER
       -
         name: Build and push spark-history-server
