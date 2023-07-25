@@ -32,7 +32,8 @@ jobs:
         name: Semver
         id: sem_ver
         run: |
-          echo ::set-output name=SEM_VER::${SOURCE_TAG##*-}
+            SEM_VER=$(echo ${{ steps.version_info.outputs.SOURCE_TAG }} | cut -d- -f2)
+            echo ::set-output name=SEM_VER::$SEM_VER
       -
         name: Build and push ethereumetl
         uses: docker/build-push-action@v4
