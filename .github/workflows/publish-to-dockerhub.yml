@@ -34,7 +34,7 @@ jobs:
         run: |
           echo ::set-output name=SEM_VER::${SOURCE_TAG##*-}
       -
-        name: Build and push
+        name: Build and push ethereumetl
         uses: docker/build-push-action@v4
         with:
           context: "{{defaultContext}}:indexer"
@@ -42,7 +42,7 @@ jobs:
           if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'ethereumetl-') }}
           tags: octanlabs/ethereumetl:latest, octanlabs/ethereumetl:${{ steps.sem_ver.outputs.SEM_VER }}
       -
-        name: Build and push cmc crawl image
+        name: Build and push cmc-historical-crawl image
         uses: docker/build-push-action@v4
         with:
           context: "{{defaultContext}}:cmc-crawl"
@@ -51,7 +51,7 @@ jobs:
           if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'cmc-historical-crawl-') }}
           tags: octanlabs/cmc-historical-crawl:latest, octanlabs/cmc-historical-crawl:${{ steps.sem_ver.outputs.SEM_VER }}
       -
-        name: Build and push cmc crawl image
+        name: Build and push top-cmc-crawlimage
         uses: docker/build-push-action@v4
         with:
           context: "{{defaultContext}}:cmc-crawl"
@@ -59,3 +59,11 @@ jobs:
           push: true
           if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'top-cmc-crawl-') }}
           tags: octanlabs/top-cmc-crawl:latest, octanlabs/top-cmc-crawl:${{ steps.sem_ver.outputs.SEM_VER }}
+      -
+        name: Build and push spark-history-server
+        uses: docker/build-push-action@v4
+        with:
+          context: "{{defaultContext}}:indexer"
+          push: true
+          if: ${{ startsWith(steps.version_info.outputs.SOURCE_TAG, 'spark-history-server-') }}
+          tags: octanlabs/spark-history-server:latest, octanlabs/spark-history-server:${{ steps.sem_ver.outputs.SEM_VER }}
