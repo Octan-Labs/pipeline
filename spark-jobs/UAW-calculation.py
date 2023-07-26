@@ -23,8 +23,8 @@ end = args.end
 
 
 # base_path = "."
-# start = "2023-06-06"
-# end = "2023-06-06"
+# start = "2023-07-24"
+# end = "2023-07-24"
 
 
 # In[3]:
@@ -74,7 +74,7 @@ else:
 # In[5]:
 
 
-from pyspark.sql.types import StructType, StructField, StringType, LongType, DecimalType, DoubleType
+from pyspark.sql.types import StructType, StructField, StringType, LongType, DecimalType, DoubleType, TimestampType
 from pyspark.sql import SparkSession
 
 
@@ -102,19 +102,61 @@ spark = SparkSession \
 # In[7]:
 
 
-pre_tx_df = spark.read.format("csv") \
-    .option("header", True) \
-    .load(list(map(lambda date: "{base_path}/pre-tx/date={date}/*.csv".format(base_path = base_path, date = date), dates)))
+contracts_schema = StructType([ \
+    StructField("address", StringType(), True), \
+    StructField("bytecode", StringType(), True), \
+    StructField("function_sighashes", StringType(), True), \
+    StructField("is_erc20", StringType(), True), \
+    StructField("is_erc721", StringType(), True), \
+    StructField("block_number", DecimalType(38, 0), True), \
+    StructField("block_timestamp", TimestampType(), True), \
+    StructField("block_hash", StringType(), True), \
+  ])
+
+
+# In[ ]:
+
+
+
 
 
 # In[8]:
 
 
-contract_df = spark.read.format("parquet") \
-    .load("{base_path}/contracts/*/*.parquet".format(base_path = base_path))
+spark.sql("set spark.sql.files.ignoreCorruptFiles=true")
 
 
 # In[9]:
+
+
+pre_tx_df = spark.read.format("csv") \
+    .option("header", True) \
+    .load(
+        "{base_path}/pre_tx/{time_range}/start={start}_end={end}/" \
+            .format(
+                base_path = base_path, \
+                time_range = time_range, \
+                start = start, \
+                end = end \
+            ) \
+    )
+
+
+# In[10]:
+
+
+contract_df = spark.read.format("parquet") \
+    .schema(contracts_schema) \
+    .load("{base_path}/contracts/*/*.parquet".format(base_path = base_path))
+
+
+# In[ ]:
+
+
+
+
+
+# In[11]:
 
 
 from pyspark.sql.functions import lit, col
@@ -131,12 +173,12 @@ contract_df = contract_df.withColumnRenamed('address', 'from_address') \
 
 
 
-# In[10]:
+# In[12]:
 
 
 start_time = time.time()
 
-result_df = pre_tx_df \
+uaw_result_df = pre_tx_df \
     .sort('to_address') \
     .select('from_address', 'to_address') \
     .filter(col("from_address") != '0x0000000000000000000000000000000000000000') \
@@ -161,7 +203,7 @@ time.time() - start_time
 
 
 
-# In[11]:
+# In[13]:
 
 
 # result_df.show(10, False)
@@ -173,7 +215,7 @@ time.time() - start_time
 
 
 
-# In[12]:
+# In[14]:
 
 
 # start_time = time.time()
@@ -203,7 +245,7 @@ time.time() - start_time
 
 
 
-# In[13]:
+# In[15]:
 
 
 # start_time = time.time()
@@ -237,7 +279,7 @@ time.time() - start_time
 
 
 
-# In[14]:
+# In[16]:
 
 
 # uw_df.count()
@@ -249,12 +291,12 @@ time.time() - start_time
 
 
 
-# In[15]:
+# In[17]:
 
 
 start_time = time.time()
 
-result_df.repartition(1) \
+uaw_result_df.repartition(1) \
     .write \
     .option("header",True) \
     .csv(
@@ -276,8 +318,14 @@ time.time() - start_time
 
 
 
-# In[16]:
+# In[18]:
 
 
 spark.stop()
+
+
+# In[ ]:
+
+
+
 
