@@ -207,7 +207,6 @@ cmc_historicals_df = spark.read.format("csv") \
     .load("s3a://octan-labs-bsc/cmc_historicals/*.csv")
 cmc_addresses_df = spark.read.format("csv") \
     .option("header", True) \
-    .schema(cmc_address_schema) \
     .load("s3a://octan-labs-bsc/cmc_addresses/*.csv")
 
 
