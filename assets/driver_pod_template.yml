@@ -30,3 +30,8 @@ spec:
                 operator: In 
                 values: 
                 - ON_DEMAND
+              - key: 'noderole' 
+                operator: In 
+                values: 
+                - spark
+  
