@@ -27,7 +27,7 @@ parser.add_argument("-e", "--entities", help="The list of entity types to merge"
 
 args=parser.parse_args()
 
-base_path = args.base_path
+base_path = f"s3a://{args.base_path}"
 date = args.date
 entities = args.entities
 
@@ -54,7 +54,6 @@ def repartition(entity_name):
     df = spark.read.parquet("{base_path}/{entity_name}s/date={date}".format(date=date, base_path=base_path, entity_name=entity_name))
     df.repartition(1) \
         .write \
-        .option("header",True) \
         .parquet("{base_path}/{entity_name}s/date={date}/repartition".format(date=date, entity_name=entity_name, base_path=base_path))
 
 
