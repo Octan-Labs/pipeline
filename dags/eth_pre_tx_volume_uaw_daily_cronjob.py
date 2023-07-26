@@ -50,8 +50,8 @@ with DAG(
                 "base_path": base_path,
                 "start": "{{ data_interval_start.subtract(days=1) | ds }}",
                 "end": "{{ data_interval_start.subtract(days=1) | ds }}",
-                "name": "bsc",
-                "symbol": "BNB"
+                "name": "eth",
+                "symbol": "ETH"
             },
             wait_for_completion=True,
             failed_states=["false"]

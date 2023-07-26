@@ -30,3 +30,7 @@ spec:
                 operator: In 
                 values: 
                 - SPOT
+              - key: 'noderole' 
+                operator: In 
+                values: 
+                - spark
