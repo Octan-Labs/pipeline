@@ -51,7 +51,7 @@ with DAG(
                 "start": "{{ data_interval_start.subtract(days=1) | ds }}",
                 "end": "{{ data_interval_start.subtract(days=1) | ds }}",
                 "name": "eth",
-                "symbol": "ETH"
+                "cmc_id": "1027"
             },
             wait_for_completion=True,
             failed_states=["false"]
