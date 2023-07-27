@@ -1,0 +1,70 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: sparkonk8s
+  region: ap-southeast-1
+
+managedNodeGroups:
+  - name: ng-4vcpu-16gb-zonea-ondemand
+    minSize: 1
+    maxSize: 5
+    desiredCapacity: 1
+    instanceType: m5.xlarge
+    privateNetworking: true
+    availabilityZones: ["ap-southeast-1a"]
+    labels:
+      "failure-domain.beta.kubernetes.io/zone": "ap-southeast-1a"
+    tags:
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        certManager: true
+        ebs: true
+        awsLoadBalancerController: true
+
+  - name: ng-4vcpu-16gb-zoneb-ondemand
+    minSize: 1
+    maxSize: 5
+    desiredCapacity: 1
+    instanceType: m5.xlarge
+    privateNetworking: true
+    availabilityZones: ["ap-southeast-1b"]
+    labels:
+      lifecycle: Ec2OnDemand
+      intent: apps
+      aws.amazon.com/spot: "true"
+      "failure-domain.beta.kubernetes.io/zone": "ap-southeast-1b"
+    tags:
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        certManager: true
+        ebs: true
+        awsLoadBalancerController: true
+
+  - name: ng-4vcpu-16gb-zonec-ondemand
+    minSize: 1
+    maxSize: 5
+    desiredCapacity: 1
+    instanceType: m5.xlarge
+    privateNetworking: true
+    availabilityZones: ["ap-southeast-1c"]
+    labels:
+      "failure-domain.beta.kubernetes.io/zone": "ap-southeast-1c"
+    tags:
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        certManager: true
+        ebs: true
+        awsLoadBalancerController: true
+
+  - name: ng-8vcpu-64gb-spot
+    minSize: 0
+    maxSize: 4
+    desiredCapacity: 0
+    spot: true
+    instanceTypes: ["r5.2xlarge", "r5a.2xlarge", "r6i.2xlarge"]
+    privateNetworking: true
+    availabilityZones: ["ap-southeast-1b"] # use single AZ to optimise data transfer between instances
