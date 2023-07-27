@@ -50,7 +50,7 @@ with DAG(
                 "start": "{{ data_interval_start.subtract(days=1) | ds }}",
                 "end": "{{ data_interval_start.subtract(days=1) | ds }}",
                 "name": "bsc",
-                "symbol": "1839"
+                "cmc_id": "1839"
             },
             wait_for_completion=True,
             failed_states=["false"]
