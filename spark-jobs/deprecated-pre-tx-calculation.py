@@ -232,7 +232,7 @@ cmc_addresses_df = cmc_addresses_df.dropDuplicates(["{name}".format(name = name)
 # In[ ]:
 
 
-from pyspark.sql.functions import col, format_number
+from pyspark.sql.functions import col, format_number, regexp_replace
 
 
 # In[ ]:
