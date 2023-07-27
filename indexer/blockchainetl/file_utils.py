@@ -39,12 +39,16 @@ def smart_open(filename=None, mode='w', binary=False, create_parent_dirs=True):
     finally:
         fh.close()
 
-def get_file_handle(filename, mode='w', binary=False, create_parent_dirs=True):
+def _start_fs(path):
     global _fs
     if _fs == None:
-        target_protocol = infer_storage_options(filename)['protocol']
+        target_protocol = infer_storage_options(path)['protocol']
         # _fs = fsspec.filesystem('simplecache', target_protocol=target_protocol)
         _fs = fsspec.filesystem(target_protocol)
+    return _fs
+
+def get_file_handle(filename, mode='w', binary=False, create_parent_dirs=True):
+    _fs = _start_fs(filename)
     if create_parent_dirs and filename is not None:
         parsed = urlparse(filename)
         if (parsed.hostname is None):
@@ -64,8 +68,12 @@ def get_file_handle(filename, mode='w', binary=False, create_parent_dirs=True):
         fh = NoopFile()
     return fh
 
+def isfile(path):
+    _fs = _start_fs(path)
+    return _fs.isfile(path)
+
 def rm(path, recursive=True):
-    global _fs
+    _fs = _start_fs(path)
     _fs.rm(path, recursive)
 
 def close_silently(file_handle):

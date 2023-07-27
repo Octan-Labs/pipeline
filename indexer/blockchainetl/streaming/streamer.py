@@ -26,7 +26,7 @@ import os
 import time
 
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
-from blockchainetl.file_utils import smart_open
+from blockchainetl.file_utils import smart_open, isfile, rm
 
 
 class Streamer:
@@ -51,8 +51,8 @@ class Streamer:
         self.retry_errors = retry_errors
         self.pid_file = pid_file
 
-        if self.start_block is not None or not os.path.isfile(self.last_synced_block_file):
-            init_last_synced_block_file((self.start_block or 0) - 1, self.last_synced_block_file)
+        if self.start_block is not None or not isfile(self.last_synced_block_file):
+            init_last_synced_block_file((self.start_block or 0), self.last_synced_block_file)
 
         self.last_synced_block = read_last_synced_block(self.last_synced_block_file)
 
@@ -111,7 +111,7 @@ class Streamer:
 
 def delete_file(file):
     try:
-        os.remove(file)
+        rm(file)
     except OSError:
         pass
 
@@ -121,11 +121,15 @@ def write_last_synced_block(file, last_synced_block):
 
 
 def init_last_synced_block_file(start_block, last_synced_block_file):
-    if os.path.isfile(last_synced_block_file):
-        raise ValueError(
-            '{} should not exist if --start-block option is specified. '
-            'Either remove the {} file or the --start-block option.'
-                .format(last_synced_block_file, last_synced_block_file))
+    if isfile(last_synced_block_file):
+        last_synced_block = read_last_synced_block(last_synced_block_file)
+        if last_synced_block >= start_block:
+            return last_synced_block
+        else:
+            raise ValueError(
+                '{} should not exist if --start-block {} > last synced block {} '
+                'Either remove the {} file or the --start-block option.'
+                .format(last_synced_block_file, start_block, last_synced_block, last_synced_block_file))
     write_last_synced_block(last_synced_block_file, start_block)
 
 
