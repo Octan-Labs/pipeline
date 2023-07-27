@@ -1,0 +1,44 @@
+apiVersion: "clickhouse.altinity.com/v1"
+kind: "ClickHouseInstallation"
+
+metadata:
+  name: "chi"
+  namespace: "clickhouse-operator"
+
+spec:
+  configuration:
+    clusters:
+      - name: replicated
+        zookeeper:
+          nodes:
+            - host: zookeeper-0.zookeepers.zoons
+            - host: zookeeper-1.zookeepers.zoons
+            - host: zookeeper-2.zookeepers.zoons
+        layout:
+          replicasCount: 3
+    users:
+      admin/password_sha256_hex: xxx
+      admin/networks/ip: "127.0.0.1/32"
+      admin/profile: default
+      admin/quota: default
+      readonly/password_sha256_hex: xxx
+      readonly/networks/ip: "::/0"
+      readonly/profile: readonly
+      readonly/quota: default
+  defaults:
+    templates:
+      dataVolumeClaimTemplate: chi-repl-storage
+
+  templates:
+    podTemplates:
+      - name: clickhouse-pod-template
+        generateName: "chi-{chi}-{cluster}-{host}"      
+    volumeClaimTemplates:
+      - name: chi-repl-storage
+        spec:
+          storageClassName: gp2-resizable
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100Mi
