@@ -27,14 +27,14 @@ spec:
       readonly/quota: default
   defaults:
     templates:
-      dataVolumeClaimTemplate: chi-repl-storage
+      dataVolumeClaimTemplate: pvc
 
   templates:
     podTemplates:
       - name: clickhouse-pod-template
         generateName: "chi-{chi}-{cluster}-{host}"      
     volumeClaimTemplates:
-      - name: chi-repl-storage
+      - name: pvc
         spec:
           storageClassName: gp2-resizable
           accessModes:
