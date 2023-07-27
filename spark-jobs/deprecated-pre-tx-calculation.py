@@ -127,28 +127,13 @@ tokens_schema = StructType([ \
 cmc_historical_schema = StructType([ \
     StructField("id", LongType(), True), \
     StructField("rank", LongType(), True), \
-    StructField("name", StringType(), True), \
-    StructField("symbol", StringType(), True), \
     StructField("open", DoubleType(), True), \
-    StructField("high", DoubleType(), True), \
-    StructField("low", DoubleType(), True), \
     StructField("close", DoubleType(), True), \
-    StructField("volume", DoubleType(), True), \
-    StructField("marketCap", DoubleType(), True), \
     StructField("timestamp", LongType(), True), \
-    StructField("address", StringType(), True), \
   ])
 
 
 # In[8]:
-
-
-cmc_address_schema = StructType([ \
-    StructField("rank", LongType(), True), \
-    StructField("bsc", StringType(), True), \
-    StructField("eth", StringType(), True), \
-    StructField("polygon", StringType(), True), \
-  ])
 
 
 # In[ ]:
@@ -344,7 +329,7 @@ time.time() - start_time
 
 start_time = time.time()
 
-result_df \
+result_df.repartition(1) \
     .write \
     .option("header",True) \
     .csv("s3a://octan-labs-ethereum/export/pre_tx/start_block={start_block}".format(start_block = start_block))
