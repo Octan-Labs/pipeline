@@ -66,9 +66,9 @@ with DAG(
                 arguments=['export_all'],
                 env_vars=env_vars,
                 secrets=secrets,
-                # container_resources=k8s.V1ResourceRequirements(
-                #   request={"memory": "4Gi"},
-                # ),
+                container_resources=k8s.V1ResourceRequirements(
+                    requests={"memory": "16Gib"},
+                ),
                 name='eth_indexer',
                 task_id='eth_indexer',
                 retries=5,
