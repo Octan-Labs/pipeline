@@ -73,6 +73,27 @@ with DAG(
                 task_id='eth_indexer',
                 retries=5,
                 retry_delay=timedelta(minutes=5),
+                affinity={
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "eks.amazonaws.com/capacityTyp",
+                                            "operator": "In",
+                                            # The label key's value that pods can be scheduled
+                                            # on.
+                                            "values": [
+                                                "SPOT",
+                                            ],
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
             )
 
 
