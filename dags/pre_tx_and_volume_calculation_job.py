@@ -72,7 +72,7 @@ pre_tx_and_volume_calculation = KubernetesPodOperator(
               "--conf",
               "spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem",
               "--conf",
-              "fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.auth.IAMInstanceCredentialsProvider",
+              "fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider",
               "--conf",
               "spark.hadoop.fs.s3a.connection.ssl.enabled=false",
               "--conf",
