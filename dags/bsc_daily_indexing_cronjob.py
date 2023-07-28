@@ -75,27 +75,27 @@ with DAG(
                 task_id='bsc_indexer',
                 retries=5,
                 retry_delay=timedelta(minutes=5),
-                affinity={
-                    "nodeAffinity": {
-                        "requiredDuringSchedulingIgnoredDuringExecution": {
-                            "nodeSelectorTerms": [
-                                {
-                                    "matchExpressions": [
-                                        {
-                                            "key": "eks.amazonaws.com/capacityType",
-                                            "operator": "In",
-                                            # The label key's value that pods can be scheduled
-                                            # on.
-                                            "values": [
-                                                "SPOT",
-                                            ],
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                },
+                # affinity={
+                #     "nodeAffinity": {
+                #         "requiredDuringSchedulingIgnoredDuringExecution": {
+                #             "nodeSelectorTerms": [
+                #                 {
+                #                     "matchExpressions": [
+                #                         {
+                #                             "key": "eks.amazonaws.com/capacityType",
+                #                             "operator": "In",
+                #                             # The label key's value that pods can be scheduled
+                #                             # on.
+                #                             "values": [
+                #                                 "SPOT",
+                #                             ],
+                #                         }
+                #                     ]
+                #                 }
+                #             ]
+                #         }
+                #     }
+                # },
             )
 
     bsc_daily_indexing_cronjob
