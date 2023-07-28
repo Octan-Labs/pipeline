@@ -5,6 +5,28 @@ metadata:
   name: sparkonk8s
   region: ap-southeast-1
 
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: airflow-webserver
+      namespace: airflow
+      labels: {aws-usage: "application"}
+    attachPolicyARNs:
+    - "arn:aws:iam::xxx:policy/AirflowS3Logs"
+  - metadata:
+      name: airflow-scheduler
+      namespace: airflow
+      labels: {aws-usage: "application"}
+    attachPolicyARNs:
+    - "arn:aws:iam::xxx:policy/AirflowS3Logs"
+  - metadata:
+      name: airflow-worker
+      namespace: airflow
+      labels: {aws-usage: "application"}
+    attachPolicyARNs:
+    - "arn:aws:iam::xxx:policy/AirflowS3Logs"
+
 managedNodeGroups:
   - name: ng-4vcpu-16gb-zonea-ondemand
     minSize: 1
