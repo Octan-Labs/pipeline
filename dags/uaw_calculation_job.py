@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
 
@@ -23,6 +24,21 @@ dag = DAG('UAW_calculation',
           schedule_interval=None,
           start_date=datetime(2023, 7, 10),
           catchup=False)
+
+secrets = [
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_ACCESS_KEY_ID',
+        secret='spark-aws-key',
+        key='aws_access_key_id'
+    ),
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_SECRET_ACCESS_KEY',
+        secret='spark-aws-key',
+        key='aws_secret_access_key'
+    ),
+]
 
 UAW_calculation = KubernetesPodOperator(
             image="171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19",
@@ -72,6 +88,8 @@ UAW_calculation = KubernetesPodOperator(
               "--conf",
               "spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem",
               "--conf",
+              "fs.s3a.aws.credentials.provider=com.amazonaws.auth.EnvironmentVariableCredentialsProvider",
+              "--conf",
               "spark.hadoop.fs.s3a.connection.ssl.enabled=false",
               "--conf",
               "spark.hadoop.fs.s3a.fast.upload=true",
@@ -99,6 +117,7 @@ UAW_calculation = KubernetesPodOperator(
             retries=5,
             retry_delay=timedelta(minutes=5),
             dag=dag,
+            secrets=secrets,
         )
 
 
