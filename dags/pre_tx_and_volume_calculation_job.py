@@ -101,6 +101,7 @@ pre_tx_and_volume_calculation = KubernetesPodOperator(
             retries=5,
             retry_delay=timedelta(minutes=5),
             dag=dag,
+            service_account_name="default",
         )
 
 

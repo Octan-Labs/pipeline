@@ -26,6 +26,13 @@ iam:
       labels: {aws-usage: "application"}
     attachPolicyARNs:
     - "arn:aws:iam::xxx:policy/AirflowS3Logs"
+  - metadata:
+      name: default
+      namespace: spark
+      labels: {aws-usage: "application"}
+    attachPolicyARNs:
+    - "arn:aws:iam::xxx:policy/S3ReadWriteOnSparkBucket" 
+    - "arn:aws:iam::xxx:policy/S3ReadWriteOnArchiveBucket"
 
 managedNodeGroups:
   - name: ng-4vcpu-16gb-zonea-ondemand
