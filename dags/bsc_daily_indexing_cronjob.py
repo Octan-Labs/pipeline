@@ -82,7 +82,7 @@ with DAG(
                                 {
                                     "matchExpressions": [
                                         {
-                                            "key": "eks.amazonaws.com/capacityTyp",
+                                            "key": "eks.amazonaws.com/capacityType",
                                             "operator": "In",
                                             # The label key's value that pods can be scheduled
                                             # on.
