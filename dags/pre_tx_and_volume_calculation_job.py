@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
 
@@ -23,6 +24,21 @@ dag = DAG('pre_tx_and_volume_calculation',
           schedule_interval=None,
           start_date=datetime(2023, 7, 10),
           catchup=False)
+
+secrets = [
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_ACCESS_KEY_ID',
+        secret='spark-aws-key',
+        key='aws_access_key_id'
+    ),
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_SECRET_ACCESS_KEY',
+        secret='spark-aws-key',
+        key='aws_secret_access_key'
+    ),
+]
 
 pre_tx_and_volume_calculation = KubernetesPodOperator(
             image="171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19",
@@ -72,9 +88,7 @@ pre_tx_and_volume_calculation = KubernetesPodOperator(
               "--conf",
               "spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem",
               "--conf",
-              "fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
-              "--conf",
-              "fs.s3a.assumed.role.arn=arn:aws:iam::171092530978:role/eksctl-sparkonk8s-addon-iamserviceaccount-sp-Role1-1S4TS26IKTAAI"
+              "fs.s3a.aws.credentials.provider=com.amazonaws.auth.EnvironmentVariableCredentialsProvider",
               "--conf",
               "spark.hadoop.fs.s3a.connection.ssl.enabled=false",
               "--conf",
@@ -105,7 +119,7 @@ pre_tx_and_volume_calculation = KubernetesPodOperator(
             retries=5,
             retry_delay=timedelta(minutes=5),
             dag=dag,
-            service_account_name="default",
+            secrets=secrets,
         )
 
 
