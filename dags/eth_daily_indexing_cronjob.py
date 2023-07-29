@@ -25,7 +25,7 @@ with DAG(
     default_args=default_args,
     description='Run eth indexer daily',
     schedule="@daily",
-    catchup=False
+    catchup=True
 ) as dag:
 
     env_vars = [
