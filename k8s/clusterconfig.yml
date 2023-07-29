@@ -97,3 +97,9 @@ managedNodeGroups:
     instanceTypes: ["r5.2xlarge", "r5a.2xlarge", "r6i.2xlarge"]
     privateNetworking: true
     availabilityZones: ["ap-southeast-1b"] # use single AZ to optimise data transfer between instances
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        certManager: true
+        ebs: true
+        awsLoadBalancerController: true
