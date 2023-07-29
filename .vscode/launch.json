@@ -17,6 +17,18 @@
             "justMyCode": true
         },
         {
+            "name": "Python: stream",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/indexer/ethereumetl.py",
+            "args": [
+                "stream",
+            ],
+            "envFile": "${workspaceFolder}/.env/exporter",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Python: memray export_all",
             "type": "python",
             "request": "launch",
