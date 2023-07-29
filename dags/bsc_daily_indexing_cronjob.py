@@ -24,7 +24,9 @@ with DAG(
     default_args=default_args,
     description='Run bsc indexer daily',
     schedule="@daily",
-    catchup=False
+    catchup=True,
+    max_active_runs=5,
+    concurrency=5,
 ) as dag:
 
     env_vars = [
