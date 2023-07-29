@@ -9,10 +9,11 @@ default_args = {
     'owner': 'airflow',
     'depends_on_past': True,
     'start_date': datetime(2015, 7, 30),
-    'retries': 5,
+    'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
-    'max_active_runs': 5,
+    'max_active_tasks': 3,
+    'max_active_runs': 3,
     # KubernetesPodOperator Defaults
     'namespace': 'spark',
     'in_cluster': True,  # if set to true, will look in the cluster, if false, looks for file
