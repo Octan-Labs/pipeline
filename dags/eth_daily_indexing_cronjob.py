@@ -12,8 +12,6 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
-    'max_active_runs': 3,
-    'concurrency': 3,
     # KubernetesPodOperator Defaults
     'namespace': 'spark',
     'in_cluster': True,  # if set to true, will look in the cluster, if false, looks for file
@@ -26,7 +24,9 @@ with DAG(
     default_args=default_args,
     description='Run eth indexer daily',
     schedule="@daily",
-    catchup=True
+    catchup=True,
+    max_active_runs=3,
+    concurrency=3,
 ) as dag:
 
     env_vars = [
