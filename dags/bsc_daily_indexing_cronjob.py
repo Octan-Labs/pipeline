@@ -31,7 +31,7 @@ with DAG(
 ) as dag:
 
     for hour in range(24):
-        date_str = '{{ data_interval_start.subtract(days=1) | ds }}'
+        date_str = '{{ data_interval_start.subtract(days=1) | ds_nodash }}'
 
         env_vars = [
             k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
@@ -77,6 +77,6 @@ with DAG(
                             'memory': '8G',
                         },
                     ),
-                    name='bsc_indexer_{date_str}_hour_{hour}',
-                    task_id='bsc_indexer_{date_str}_hour_{hour}'
+                    name='bsc_indexer_{hour}',
+                    task_id='bsc_indexer_{hour}'
                 )
