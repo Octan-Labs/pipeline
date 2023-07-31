@@ -31,7 +31,7 @@ with DAG(
 ) as dag:
 
     for hour in range(24):
-        date_str = '{{ data_interval_start.subtract(days=1) | ds }}'
+        date_str = "{{ data_interval_start.subtract(days=1) | ds }}"
 
         env_vars = [
             k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
