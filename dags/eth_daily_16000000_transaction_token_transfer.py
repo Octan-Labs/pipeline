@@ -28,6 +28,7 @@ with DAG(
     catchup=True,
     max_active_runs=7,
     concurrency=7,
+    tags=['eth']
 ) as dag:
 
     env_vars = [
