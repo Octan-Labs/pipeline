@@ -51,7 +51,7 @@ def main():
     entities = environ.get("ENTITIES")
     aws_access_key_id = environ.get("AWS_ACCESS_KEY_ID")
     aws_secret_access_key = environ.get("AWS_SECRET_ACCESS_KEY")
-    path = base_path.split("/")
+    path = base_path.split("/")[2:]
     bucket_name = path[0]
     sub_path = "/".join(path[1:]) + "/" if len(path) > 1 else ""
     
@@ -61,25 +61,26 @@ def main():
     # Get bucket object
     bucket = s3.Bucket(bucket_name)
 
-    if EntityType.BLOCK in entities:
-        rename(EntityType.BLOCK)
+    for entity in entities:
+        if EntityType.BLOCK == entity:
+            rename(EntityType.BLOCK)
 
-    if EntityType.TRANSACTION in entities:
-        rename(EntityType.TRANSACTION)
+        if EntityType.TRANSACTION == entity:
+            rename(EntityType.TRANSACTION)
 
-    if EntityType.LOG in entities:
-        rename(EntityType.LOG)
+        if EntityType.LOG == entity:
+            rename(EntityType.LOG)
 
-    if EntityType.TOKEN_TRANSFER in entities:
-        rename(EntityType.TOKEN_TRANSFER)
+        if EntityType.TOKEN_TRANSFER == entity:
+            rename(EntityType.TOKEN_TRANSFER)
 
-    if EntityType.TRACE in entities:
-        rename(EntityType.TRACE)
+        if EntityType.TRACE == entity:
+            rename(EntityType.TRACE)
 
-    if EntityType.CONTRACT in entities:
-        rename(EntityType.CONTRACT)
+        if EntityType.CONTRACT == entity:
+            rename(EntityType.CONTRACT)
 
-    if EntityType.TOKEN in entities:
-        rename(EntityType.TOKEN)
+        if EntityType.TOKEN == entity:
+            rename(EntityType.TOKEN)
 
 main()

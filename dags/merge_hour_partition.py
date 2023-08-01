@@ -83,6 +83,8 @@ merge_files = KubernetesPodOperator(
               "--conf",
               "spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem",
               "--conf",
+              "fs.s3a.aws.credentials.provider=com.amazonaws.auth.EnvironmentVariableCredentialsProvider",
+              "--conf",
               "spark.hadoop.fs.s3a.connection.ssl.enabled=false",
               "--conf",
               "spark.hadoop.fs.s3a.fast.upload=true",
