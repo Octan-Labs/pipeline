@@ -7,6 +7,7 @@
 from pyspark.sql import SparkSession
 
 import argparse
+from os import environ
 
 # In[ ]:
 
@@ -21,15 +22,18 @@ spark = SparkSession \
 
 parser=argparse.ArgumentParser()
 
-parser.add_argument("-b", "--base_path", help="S3 bucket base path", required=True)
-parser.add_argument("-d", "--date", help="Calculate date", required=True)
-parser.add_argument("-e", "--entities", help="The list of entity types to merge", required=True)
+parser.add_argument("-b", "--base_path",
+                    help="S3 bucket base path", default=environ.get("BASE_PATH"))
+parser.add_argument("-d", "--date", help="Calculate date",
+                    default=environ.get("DATE"))
+parser.add_argument("-e", "--entities",
+                    help="The list of entity types to merge", default=environ.get("ENTITIES"))
 
 args=parser.parse_args()
 
 base_path = f's3a://{"/".join(args.base_path.split("/")[2:])}'
 date = args.date
-entities = args.entities
+entities = args.entities.split(",")
 
 # In[ ]:
 
@@ -42,9 +46,6 @@ class EntityType:
     TRACE = 'trace'
     CONTRACT = 'contract'
     TOKEN = 'token'
-
-
-arr = entities.split(",")
 
 
 # In[ ]:

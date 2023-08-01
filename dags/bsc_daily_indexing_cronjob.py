@@ -95,6 +95,15 @@ with DAG(
             task_id='bsc_indexer_{}'.format(hour)
         ))
 
+    env_vars = [
+        k8s.V1EnvVar(
+            name='DATE',
+            value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(
+            name='ENTITY_TYPES',
+            value='block, transaction, log, token_transfer, trace, contract, token')
+    ]
+
     merge_objects = KubernetesPodOperator(
         image="171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19",
         cmds=[
@@ -155,23 +164,12 @@ with DAG(
               "--conf",
               "spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version=2",
               "s3a://datateam-spark/jobs/merge_hour_partition.py",
-              "-b={{ dag_run.conf['base_path'] }}",
-              "-d={{ dag_run.conf['date'] }}",
-              "-e={{ dag_run.conf['entities'] }}",
         ],
         name=f"merge_hour_partition_objects",
         task_id=f"merge_hour_partition_objects",
         secrets=secrets,
+        env_vars=env_vars,
     )
-
-    env_vars = [
-        k8s.V1EnvVar(
-            name='DATE',
-            value="{{ data_interval_start.subtract(days=1) | ds }}"),
-        k8s.V1EnvVar(
-            name='ENTITY_TYPES',
-            value='block, transaction, log, token_transfer, trace, contract, token')
-    ]
 
     rename_merged_object = KubernetesPodOperator(
         image='tuannm106/merge-hour-partition:latest',
