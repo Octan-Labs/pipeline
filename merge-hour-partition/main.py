@@ -48,7 +48,7 @@ def main():
 
     base_path = environ.get("BASE_PATH")
     date = environ.get("DATE")
-    entities = environ.get("ENTITIES")
+    entities = environ.get("ENTITIES").split(",")
     aws_access_key_id = environ.get("AWS_ACCESS_KEY_ID")
     aws_secret_access_key = environ.get("AWS_SECRET_ACCESS_KEY")
     path = base_path.split("/")[2:]
