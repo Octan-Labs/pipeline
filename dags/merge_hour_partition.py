@@ -20,6 +20,21 @@ dag = DAG('merge_hour_parition',
           default_args=default_args,
           schedule_interval=None)
 
+secrets = [
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_ACCESS_KEY_ID',
+        secret='indexer-aws-key',
+        key='aws_access_key_id'
+    ),
+    Secret(
+        deploy_type='env',
+        deploy_target='AWS_SECRET_ACCESS_KEY',
+        secret='indexer-aws-key',
+        key='aws_secret_access_key'
+    ),
+]
+
 merge_files = KubernetesPodOperator(
             image="171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19",
             cmds=[
@@ -84,6 +99,7 @@ merge_files = KubernetesPodOperator(
             ],
             name=f"merge_hour_partition_files",
             task_id=f"merge_hour_partition_files",
+            secrets=secrets,
             retries=5,
             retry_delay=timedelta(minutes=5),
             dag=dag,
@@ -93,21 +109,6 @@ env_vars = [
     k8s.V1EnvVar(name='BASE_PATH', value="{{ dag_run.conf['base_path'] }}"),
     k8s.V1EnvVar(name='DATE', value="{{ dag_run.conf['date'] }}"),
     k8s.V1EnvVar(name='ENTITIES', value="{{ dag_run.conf['entities'] }}")
-]
-
-secrets = [
-    Secret(
-        deploy_type='env',
-        deploy_target='AWS_ACCESS_KEY_ID',
-        secret='indexer-aws-key',
-        key='aws_access_key_id'
-    ),
-    Secret(
-        deploy_type='env',
-        deploy_target='AWS_SECRET_ACCESS_KEY',
-        secret='indexer-aws-key',
-        key='aws_secret_access_key'
-    ),
 ]
 
 rename_merged_object = KubernetesPodOperator(
