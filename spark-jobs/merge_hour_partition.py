@@ -27,7 +27,7 @@ parser.add_argument("-e", "--entities", help="The list of entity types to merge"
 
 args=parser.parse_args()
 
-base_path = f"s3a://{args.base_path}"
+base_path = f's3a://{"/".join(args.base_path.split("/")[2:])}'
 date = args.date
 entities = args.entities
 
@@ -59,49 +59,25 @@ def repartition(entity_name):
 
 # In[ ]:
 
+for entity in entities:
+    if EntityType.BLOCK == entity:
+        repartition(EntityType.BLOCK)
 
-if EntityType.BLOCK in arr:
-    repartition(EntityType.BLOCK)
+    if EntityType.TRANSACTION == entity:
+        repartition(EntityType.TRANSACTION)
 
+    if EntityType.LOG == entity:
+        repartition(EntityType.LOG)
 
-# In[ ]:
+    if EntityType.TOKEN_TRANSFER == entity:
+        repartition(EntityType.TOKEN_TRANSFER)
 
+    if EntityType.TRACE == entity:
+        repartition(EntityType.TRACE)
 
-if EntityType.TRANSACTION in arr:
-    repartition(EntityType.TRANSACTION)
+    if EntityType.CONTRACT == entity:
+        repartition(EntityType.CONTRACT)
 
-
-# In[ ]:
-
-
-if EntityType.LOG in arr:
-    repartition(EntityType.LOG)
-
-
-# In[ ]:
-
-
-if EntityType.TOKEN_TRANSFER in arr:
-    repartition(EntityType.TOKEN_TRANSFER)
-
-
-# In[ ]:
-
-
-if EntityType.TRACE in arr:
-    repartition(EntityType.TRACE)
-
-
-# In[ ]:
-
-
-if EntityType.CONTRACT in arr:
-    repartition(EntityType.CONTRACT)
-
-
-# In[ ]:
-
-
-if EntityType.TOKEN in arr:
-    repartition(EntityType.TOKEN)
+    if EntityType.TOKEN == entity:
+        repartition(EntityType.TOKEN)
 
