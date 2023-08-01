@@ -25,8 +25,8 @@ with DAG(
     description='Run eth indexer daily',
     schedule="@daily",
     catchup=True,
-    max_active_runs=1,
-    concurrency=1,
+    max_active_runs=3,
+    concurrency=3,
     tags=['eth']
 ) as dag:
 
