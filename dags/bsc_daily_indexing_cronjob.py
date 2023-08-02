@@ -100,7 +100,7 @@ with DAG(
             name='DATE',
             value="{{ data_interval_start.subtract(days=1) | ds }}"),
         k8s.V1EnvVar(
-            name='ENTITY_TYPES',
+            name='ENTITIES',
             value='block, transaction, log, token_transfer, trace, contract, token')
     ]
 
@@ -194,7 +194,6 @@ with DAG(
 
     rename_merged_object = KubernetesPodOperator(
         image='tuannm106/merge-hour-partition:latest',
-        cmds=["main"],
         env_vars=env_vars,
         secrets=secrets,
         name='rename_merged_object',

@@ -130,7 +130,6 @@ env_vars = [
 
 rename_merged_object = KubernetesPodOperator(
             image='tuannm106/merge-hour-partition:latest',
-            cmds=["main"],
             env_vars=env_vars,
             secrets=secrets,
             name='rename_merged_object',
