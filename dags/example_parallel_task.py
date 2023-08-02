@@ -12,7 +12,7 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='test_24_task_1',
+    dag_id='example_parrallel_task',
     schedule_interval="0 * * * *",
     default_args=default_args,
     catchup=False,

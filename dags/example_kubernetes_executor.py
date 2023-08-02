@@ -17,7 +17,7 @@ default_args = {
     'is_delete_operator_pod': True
 }
 
-dag = DAG('Example_Kubernetes_Executor',
+dag = DAG('example_kubernetes_executor',
           default_args=default_args,
           description='Kubernetes Pod Operator - Demonstration Dag',
           schedule_interval=None,
@@ -40,7 +40,6 @@ ingest_data = KubernetesPodOperator(
         )
 
 load_data = KubernetesPodOperator(
-           
             image="noobmdev/example_app:test",
             arguments=["load-data"],
             name=f"load_data",
