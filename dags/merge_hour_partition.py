@@ -35,6 +35,21 @@ secrets = [
     ),
 ]
 
+spark_secrets = [
+        Secret(
+            deploy_type='env',
+            deploy_target='AWS_ACCESS_KEY_ID',
+            secret='spark-aws-key',
+            key='aws_access_key_id'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='AWS_SECRET_ACCESS_KEY',
+            secret='spark-aws-key',
+            key='aws_secret_access_key'
+        ),
+    ]
+
 merge_files = KubernetesPodOperator(
             image="171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19",
             cmds=[
@@ -101,7 +116,7 @@ merge_files = KubernetesPodOperator(
             ],
             name=f"merge_hour_partition_files",
             task_id=f"merge_hour_partition_files",
-            secrets=secrets,
+            secrets=spark_secrets,
             retries=5,
             retry_delay=timedelta(minutes=5),
             dag=dag,
