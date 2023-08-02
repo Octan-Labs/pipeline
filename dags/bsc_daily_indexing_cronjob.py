@@ -104,6 +104,27 @@ with DAG(
             value='block, transaction, log, token_transfer, trace, contract, token')
     ]
 
+    merge_objects_secrets = [
+        Secret(
+            deploy_type='env',
+            deploy_target='AWS_ACCESS_KEY_ID',
+            secret='spark-aws-key',
+            key='aws_access_key_id'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='AWS_SECRET_ACCESS_KEY',
+            secret='spark-aws-key',
+            key='aws_secret_access_key'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='BASE_PATH',
+            secret='bsc-indexer-secret',
+            key='output-dir'
+        ),
+    ]
+
     merge_objects = KubernetesPodOperator(
         image="171092530978.dkr.ecr.ap-southeast-1.amazonaws.com/octan/sparkonk8s:0.0.19",
         cmds=[
@@ -167,7 +188,7 @@ with DAG(
         ],
         name=f"merge_hour_partition_objects",
         task_id=f"merge_hour_partition_objects",
-        secrets=secrets,
+        secrets=merge_objects_secrets,
         env_vars=env_vars,
     )
 
