@@ -24,12 +24,20 @@ with DAG(
     default_args=default_args,
     description='Run eth pre-tx & volume & UAW daily',
     schedule="@daily",
-    catchup=False
+    catchup=False,
+    tags=['eth']
 ) as dag:
 
-    waiting_for_eth_daily_indexing = ExternalTaskSensor(
-            task_id='waiting_for_eth_daily_indexing',
-            external_dag_id='eth_daily_indexing',
+    waiting_for_eth_non_trace_daily_indexing = ExternalTaskSensor(
+            task_id='waiting_for_eth_non_trace_daily_indexing',
+            external_dag_id='eth_daily_non_trace_indexing',
+            external_task_id='eth_indexer',
+            failed_states=["failed"]
+        )
+    
+    waiting_for_eth_trace_daily_indexing = ExternalTaskSensor(
+            task_id='waiting_for_eth_trace_daily_indexing',
+            external_dag_id='eth_daily_trace_indexing',
             external_task_id='eth_indexer',
             failed_states=["failed"]
         )
@@ -69,4 +77,4 @@ with DAG(
             failed_states=["false"]
         )
 
-    [waiting_for_eth_daily_indexing, waiting_for_cmc_historical_daily_indexing] >> trigger_pre_tx_and_volume_job >> trigger_uaw_job
+    [waiting_for_eth_non_trace_daily_indexing, waiting_for_eth_trace_daily_indexing, waiting_for_cmc_historical_daily_indexing] >> trigger_pre_tx_and_volume_job >> trigger_uaw_job
