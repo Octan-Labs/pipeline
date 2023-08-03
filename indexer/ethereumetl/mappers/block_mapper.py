@@ -109,7 +109,7 @@ class EthBlockMapper(object):
             pa.field('extra_data', pa.string()),
             pa.field('gas_limit', pa.decimal128(precision=38, scale=0)),
             pa.field('gas_used', pa.decimal128(precision=38, scale=0)),
-            pa.field('timestamp', pa.decimal128(precision=38, scale=0), nullable=False),
-            pa.field('transaction_count', pa.timestamp('s', tz='UTC')),
+            pa.field('timestamp', pa.timestamp('s', tz='UTC')),
+            pa.field('transaction_count', pa.decimal128(precision=38, scale=0), nullable=False),
             pa.field('base_fee_per_gas', pa.decimal128(precision=38, scale=0))
         ])
