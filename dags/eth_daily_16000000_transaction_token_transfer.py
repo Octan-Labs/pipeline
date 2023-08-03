@@ -65,7 +65,7 @@ with DAG(
     ]
 
     eth_daily_16000000_transaction_token_transfer = KubernetesPodOperator(
-                image='octanlabs/ethereumetl:0.0.4',
+                image='octanlabs/ethereumetl:0.0.5',
                 arguments=['export_all'],
                 env_vars=env_vars,
                 secrets=secrets,
