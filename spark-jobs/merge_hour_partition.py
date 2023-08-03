@@ -33,7 +33,7 @@ args=parser.parse_args()
 
 base_path = f's3a://{"/".join(args.base_path.split("/")[2:])}'
 date = args.date
-entities = args.entities.split(",")
+entities = [entity.strip() for entity in args.entities.split(',')]
 
 # In[ ]:
 
