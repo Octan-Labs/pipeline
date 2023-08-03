@@ -40,5 +40,4 @@ jobs:
         with:
           context: "{{defaultContext}}:indexer"
           push: true
-          if: ${{ startsWith(GITHUB_REF#refs/tags/, 'ethereumetl-') }}
           tags: octanlabs/ethereumetl:latest, octanlabs/ethereumetl:${{ steps.sem_ver.outputs.SEM_VER }}
