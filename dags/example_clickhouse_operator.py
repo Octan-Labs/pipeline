@@ -5,7 +5,7 @@ from airflow.utils.dates import days_ago
 
 with DAG(
         dag_id='example_clickhouse_operator',
-        # start_date=days_ago(2),
+        'start_date': datetime(2023, 8, 4),
 ) as dag:
     ClickHouseOperator(
         task_id='test_select_clickhouse',
