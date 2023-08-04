@@ -17,10 +17,10 @@ with DAG(
 ) as dag:
     ClickHouseOperator(
         task_id='test_select_clickhouse',
-        database='default',
+        database='system',
         sql=(
             '''
-              SELECT * from system.processes
+              SELECT * from processes
             '''
             # result of the last query is pushed to XCom
         ),
