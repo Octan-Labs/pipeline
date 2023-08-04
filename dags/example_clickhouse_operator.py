@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.clickhouse_operator import ClickHouseOperator
+from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
