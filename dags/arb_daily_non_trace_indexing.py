@@ -25,8 +25,8 @@ with DAG(
     description='Run arbitrum non trace indexer daily',
     schedule="@daily",
     catchup=True,
-    max_active_runs=3,
-    concurrency=3,
+    max_active_runs=10,
+    concurrency=10,
     tags=['arb']
 ) as dag:
 
