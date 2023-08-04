@@ -12,18 +12,8 @@ with DAG(
         database='default',
         sql=(
             '''
-                INSERT INTO aggregate
-                SELECT eventDt, sum(price * qty) AS income FROM sales
-                WHERE eventDt = '{{ ds }}' GROUP BY eventDt
-            ''', '''
-                OPTIMIZE TABLE aggregate ON CLUSTER {{ var.value.cluster_name }}
-                PARTITION toDate('{{ execution_date.format('%Y-%m-01') }}')
-            ''', '''
-                SELECT sum(income) FROM aggregate
-                WHERE eventDt BETWEEN
-                    '{{ execution_date.start_of('month').to_date_string() }}'
-                    AND '{{ execution_date.end_of('month').to_date_string() }}'
-            ''',
+              SELECT * from system.processes
+            '''
             # result of the last query is pushed to XCom
         ),
         clickhouse_conn_id='chi-simple-01-simple-0-0-0.chi-simple-01-simple-0-0.clickhouse-operator.svc.cluster.local',
