@@ -4,11 +4,11 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
 with DAG(
-        dag_id='update_income_aggregate',
+        dag_id='example_clickhouse_operator',
         # start_date=days_ago(2),
 ) as dag:
     ClickHouseOperator(
-        task_id='update_income_aggregate',
+        task_id='test_select_clickhouse',
         database='default',
         sql=(
             '''
@@ -16,8 +16,5 @@ with DAG(
             '''
             # result of the last query is pushed to XCom
         ),
-        host='chi-simple-01-simple-0-0-0.chi-simple-01-simple-0-0.clickhouse-operator.svc.cluster.local',
-        port="8123",
-        login="clickhouse_operator",
-        password='clickhouse_operator_password'
+        clickhouse_conn_id="clickhouse_conn"
     )
