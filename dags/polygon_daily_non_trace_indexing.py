@@ -35,7 +35,7 @@ with DAG(
             deploy_type='env',
             deploy_target='PROVIDER_URI',
             secret='polygon-indexer-secret',
-            key='provider-uri'
+            key='nontrace-provider-uri'
         ),
         Secret(
             deploy_type='env',
