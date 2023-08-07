@@ -22,7 +22,9 @@ dag = DAG('cmc_historical_price_daily_indexing',
           default_args=default_args,
           description='Run cmc historical price daily indexer daily',
           schedule="@daily",
-          catchup=False)
+          max_active_runs=1,
+          concurrency=1,
+          catchup=True)
 
 env_vars = [
     k8s.V1EnvVar(name='START_DATE', value="{{ data_interval_start.subtract(days=1) | ds }}"),
