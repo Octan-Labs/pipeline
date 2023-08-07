@@ -24,9 +24,9 @@ with DAG(
     default_args=default_args,
     description='Run arbitrum non trace indexer daily',
     schedule="@daily",
-    catchup=True,
-    max_active_runs=10,
-    concurrency=10,
+    catchup=False,
+    max_active_runs=5,
+    concurrency=5,
     tags=['arb']
 ) as dag:
 
@@ -67,7 +67,7 @@ with DAG(
     ]
 
     arb_daily_non_trace_indexing = KubernetesPodOperator(
-        image='octanlabs/ethereumetl:0.0.5',
+        image='octanlabs/ethereumetl:0.0.6',
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
