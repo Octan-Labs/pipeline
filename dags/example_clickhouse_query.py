@@ -6,31 +6,36 @@ from datetime import datetime, timedelta
 default_args = {
     'owner': 'airflow',
     'depends_on_past': True,
-    'start_date': datetime(2023, 8, 4),
+    'start_date': datetime(2023, 8, 7),
     'retries': 1,
     'retry_delay': timedelta(seconds=15),
     "schedule_interval": None,
 }
 
 with DAG(
-        dag_id='example_clickhouse_operator',
+        dag_id='example_clickhouse_query',
         default_args=default_args,
         tags=["example"]
 ) as dag:
-    ClickHouseOperator(
-        task_id='test_clickhouse_operator',
-        database='system',
+    database = '{{ dag_run.conf["database"] }}'
+
+    query = ClickHouseOperator(
+        task_id='test_query',
+        database=database,
         sql=(
             '''
-                SELECT * from `system`.processes p LIMIT 1000
+                {{ dag_run.conf['query'] }}
             '''
-            # result of the last query is pushed to XCom
         ),
         clickhouse_conn_id="clickhouse_conn"
-    ) >> PythonOperator(
+    ) 
+
+    print_result = PythonOperator(
         task_id='print_result',
         provide_context=True,
         python_callable=lambda task_instance, **_:
             # pulling XCom value and printing it
             print(task_instance.xcom_pull(task_ids='test_clickhouse_operator')),
     )
+
+    query >> print_result
