@@ -25,8 +25,8 @@ with DAG(
     description='Run polygon non trace indexer daily',
     schedule="@daily",
     catchup=True,
-    max_active_runs=10,
-    concurrency=10,
+    max_active_runs=1,
+    concurrency=1,
     tags=['polygon']
 ) as dag:
 
