@@ -81,6 +81,9 @@ class BlockTimestampGraph(object):
 
     def get_point(self, x):
         return block_to_point(self._web3.eth.getBlock(x))
+    
+    def get_points(self, xs):
+        return [self.get_point(x) for x in xs]
 
 
 def block_to_point(block):
