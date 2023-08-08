@@ -24,7 +24,7 @@ with DAG(
     default_args=default_args,
     description='Run eth indexer daily',
     schedule="@daily",
-    catchup=True,
+    catchup=False,
     max_active_runs=1,
     concurrency=1,
     tags=['eth']

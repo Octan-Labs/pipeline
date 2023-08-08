@@ -9,7 +9,7 @@ default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'start_date': datetime(2023, 1, 1),
-    'retries': 7,
+    'retries': 1,
     'retry_delay': timedelta(minutes=5),
     # KubernetesPodOperator Defaults
     'namespace': 'spark',
@@ -116,7 +116,7 @@ pre_tx_and_volume_calculation = KubernetesPodOperator(
             ],
             name=f"pre-tx-and-volume-calculation",
             task_id=f"pre-tx-and-volume-calculation",
-            retries=5,
+            retries=1,
             retry_delay=timedelta(minutes=5),
             dag=dag,
             secrets=secrets,
