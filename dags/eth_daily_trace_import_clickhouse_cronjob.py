@@ -28,6 +28,8 @@ with DAG(
         failed_states=["failed", "skipped"]
     )
 
+    base_s3_url = Variable.get("eth_s3_url")
+
     trigger_import_trace = TriggerDagRunOperator(
         task_id='trigger_import_trace',
         trigger_dag_id='import_from_s3_to_clickhouse_by_date',
@@ -35,6 +37,7 @@ with DAG(
             "table_name": "ethereum_trace",
             "schema": "traces",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]
@@ -47,6 +50,7 @@ with DAG(
             "table_name": "ethereum_token",
             "schema": "tokens",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]
@@ -59,6 +63,7 @@ with DAG(
             "table_name": "ethereum_contract",
             "schema": "contracts",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]
