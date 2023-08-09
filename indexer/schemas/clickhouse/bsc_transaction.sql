@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS bsc_transaction {
+CREATE TABLE IF NOT EXISTS bsc_transaction (
     hash FixedString(66),
     nonce UInt256,
     transaction_index UInt64,
@@ -20,4 +20,7 @@ CREATE TABLE IF NOT EXISTS bsc_transaction {
     receipt_root String,
     receipt_status UInt8,
     receipt_effective_gas_price UInt256
-}
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(block_timestamp)
+PRIMARY KEY (hash, transaction_index);

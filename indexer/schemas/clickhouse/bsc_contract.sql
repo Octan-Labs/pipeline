@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS bsc_contract {
+CREATE TABLE IF NOT EXISTS bsc_contract (
     address FixedString(42),
     bytecode String,
     function_sighashes String,
@@ -7,4 +7,7 @@ CREATE TABLE IF NOT EXISTS bsc_contract {
     block_number UInt64,
     block_timestamp DateTime,
     block_hash FixedString(66)
-}
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(block_timestamp)
+PRIMARY KEY (address);

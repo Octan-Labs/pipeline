@@ -1,8 +1,8 @@
-CREATE TABLE IF NOT EXISTS eth_block {
+CREATE TABLE IF NOT EXISTS ethereum_block (
     number UInt64,
     hash FixedString(66),
     parent_hash FixedString(66),
-    nonce UInt256,
+    nonce String,
     sha3_uncles FixedString(66),
     logs_bloom String,
     transactions_root FixedString(66),
@@ -18,4 +18,7 @@ CREATE TABLE IF NOT EXISTS eth_block {
     timestamp DateTime,
     transaction_count UInt64,
     base_fee_per_gas UInt256
-}
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(timestamp)
+PRIMARY KEY (number, hash);

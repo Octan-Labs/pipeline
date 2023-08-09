@@ -1,11 +1,14 @@
-CREATE TABLE IF NOT EXISTS bsc_log {
+CREATE TABLE IF NOT EXISTS bsc_log (
     log_index UInt64,
     transaction_hash FixedString(66),
     transaction_index UInt64,
     address FixedString(42),
     data String,
     topics Array(String),
-    block_number UInt64
+    block_number UInt64,
     block_timestamp DateTime,
     block_hash FixedString(66)
-}
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(block_timestamp)
+PRIMARY KEY (log_index, transaction_hash, transaction_index);
