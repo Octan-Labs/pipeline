@@ -27,6 +27,8 @@ with DAG(
         failed_states=["failed"]
     )
 
+    base_s3_url = Variable.get("bsc_s3_url")
+
     trigger_import_block = TriggerDagRunOperator(
         task_id='trigger_import_block',
         trigger_dag_id='import_from_s3_to_clickhouse_by_hour',
@@ -34,6 +36,7 @@ with DAG(
             "table_name": "bsc_block",
             "schema": "blocks",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]
@@ -46,6 +49,7 @@ with DAG(
             "table_name": "bsc_transaction",
             "schema": "transactions",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]
@@ -58,6 +62,7 @@ with DAG(
             "table_name": "bsc_log",
             "schema": "logs",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]
@@ -70,6 +75,7 @@ with DAG(
             "table_name": "bsc_token_transfer",
             "schema": "token_transfers",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+            "base_s3_url": base_s3_url
         },
         wait_for_completion=True,
         failed_states=["false"]

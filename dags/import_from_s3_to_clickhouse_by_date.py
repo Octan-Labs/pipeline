@@ -20,7 +20,6 @@ with DAG(
         catchup=False,
         tags=['clickhouse']
 ) as dag:
-    base_s3_url = Variable.get("eth_s3_url")
     access_key = Variable.get("s3_access_secret_key")
     secret_key = Variable.get("s3_secret_key")
 
@@ -38,13 +37,13 @@ with DAG(
                 '{secret_key}', 
                 'Parquet'
                 )
-                settings async_insert=1, wait_for_async_insert=1,
+                SETTINGS parallel_distributed_insert_select=1, async_insert=1, wait_for_async_insert=1,
                 max_threads=4, max_insert_threads=4, input_format_parallel_parsing=0;
             '''.format(
                     table_name = "{{ dag_run.conf['table_name'] }}",
                     schema = "{{ dag_run.conf['schema'] }}",
                     date = "{{ dag_run.conf['date'] }}",
-                    base_s3_url = base_s3_url, 
+                    base_s3_url = "{{ dag_run.conf['base_s3_url'] }}", 
                     access_key = access_key, 
                     secret_key = secret_key
                 )
