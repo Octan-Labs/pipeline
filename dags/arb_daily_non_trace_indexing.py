@@ -25,7 +25,7 @@ with DAG(
     description='Run arbitrum non trace indexer daily',
     schedule="@daily",
     catchup=False,
-    max_active_runs=5,
+    max_active_runs=1,
     concurrency=5,
     tags=['arb']
 ) as dag:
@@ -71,11 +71,6 @@ with DAG(
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
-        container_resources=k8s.V1ResourceRequirements(
-            requests={
-                'memory': '16G',
-            },
-        ),
         name='arb_non_trace_indexer',
         task_id='arb_non_trace_indexer',
     )

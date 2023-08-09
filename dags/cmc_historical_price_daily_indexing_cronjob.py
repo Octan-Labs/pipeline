@@ -9,7 +9,7 @@ default_args = {
     'owner': 'airflow',
     'depends_on_past': True,
     'start_date': datetime(2023, 7, 20),
-    'retries': 7,
+    'retries': 1,
     'retry_delay': timedelta(minutes=5),
     # KubernetesPodOperator Defaults
     'namespace': 'spark',
@@ -24,7 +24,7 @@ dag = DAG('cmc_historical_price_daily_indexing',
           schedule="@daily",
           max_active_runs=1,
           concurrency=1,
-          catchup=True)
+          catchup=False)
 
 env_vars = [
     k8s.V1EnvVar(name='START_DATE', value="{{ data_interval_start.subtract(days=1) | ds }}"),

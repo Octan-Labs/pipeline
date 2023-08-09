@@ -9,7 +9,7 @@ default_args = {
     'owner': 'airflow',
     'depends_on_past': True,
     'start_date': datetime(2015, 7, 31),
-    'retries': 5,
+    'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
     # KubernetesPodOperator Defaults

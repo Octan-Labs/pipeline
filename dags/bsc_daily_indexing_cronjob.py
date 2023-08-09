@@ -24,8 +24,8 @@ with DAG(
     default_args=default_args,
     description='Run bsc indexer daily',
     schedule="@daily",
-    catchup=True,
-    max_active_runs=3,
+    catchup=False,
+    max_active_runs=1,
     concurrency=3,
     tags=['bsc']
 ) as dag:
@@ -86,11 +86,6 @@ with DAG(
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=secrets,
-            container_resources=k8s.V1ResourceRequirements(
-                requests={
-                    'memory': '8G',
-                },
-            ),
             name='bsc_indexer_{}'.format(hour),
             task_id='bsc_indexer_{}'.format(hour)
         ))
