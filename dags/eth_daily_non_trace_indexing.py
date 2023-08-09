@@ -64,7 +64,7 @@ with DAG(
     ]
 
     eth_daily_non_trace_indexing_cronjob = KubernetesPodOperator(
-                image='octanlabs/ethereumetl:0.0.4',
+                image='octanlabs/ethereumetl:0.0.5',
                 arguments=['export_all'],
                 env_vars=env_vars,
                 secrets=secrets,
