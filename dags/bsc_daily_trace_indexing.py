@@ -103,7 +103,7 @@ with DAG(
         ]
 
         bsc_daily_trace_indexing_tasks.append(KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.4',
+            image='octanlabs/ethereumetl:0.0.5',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=default_bsc_indexer_secrets + indexer_aws_secrets,
