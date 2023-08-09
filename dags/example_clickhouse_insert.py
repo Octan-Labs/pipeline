@@ -12,26 +12,33 @@ default_args = {
 }
 
 with DAG(
-        dag_id='example_clickhouse_operator',
+        dag_id='example_clickhouse_insert',
         default_args=default_args,
         schedule_interval=None,
         catchup=False,
         tags=['example', 'clickhouse']
 ) as dag:
     ClickHouseOperator(
-        task_id='test_select_clickhouse',
-        database='system',
+        task_id='test_insert_clickhouse',
+        database='default',
         sql=(
             '''
-              SELECT * from processes
+                INSERT INTO my_first_table (user_id, message, timestamp, metric) VALUES
+                    (101, 'Hello, ClickHouse!',                                 now(),       -1.0    ),
+                    (102, 'Insert a lot of rows per batch',                     yesterday(), 1.41421 ),
+                    (102, 'Sort your data based on your commonly-used queries', today(),     2.718   ),
+                    (101, 'Granules are the smallest chunks of data read',      now() + 5,   3.14159 )
+            ''','''
+                 SELECT * FROM my_first_table ORDER BY timestamp LIMIT 1000
             '''
+
             # result of the last query is pushed to XCom
         ),
         clickhouse_conn_id="clickhouse_conn"
     ) >> PythonOperator(
-        task_id='print_month_income',
+        task_id='print_result',
         provide_context=True,
         python_callable=lambda task_instance, **_:
             # pulling XCom value and printing it
-            print(task_instance.xcom_pull(task_ids='test_select_clickhouse')),
+            print(task_instance.xcom_pull(task_ids='test_insert_clickhouse')),
     )
