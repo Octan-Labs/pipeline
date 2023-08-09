@@ -44,7 +44,6 @@ with DAG(
                     schema = "{{ dag_run.conf['schema'] }}",
                     date = "{{ dag_run.conf['date'] }}",
                     base_s3_url = "{{ dag_run.conf['base_s3_url'] }}", 
-                    base_s3_url = base_s3_url, 
                     access_key = access_key, 
                     secret_key = secret_key
                 )
