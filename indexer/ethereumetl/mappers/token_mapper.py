@@ -29,7 +29,7 @@ class EthTokenMapper(object):
             'address': token.address,
             'symbol': token.symbol,
             'name': token.name,
-            'decimals': str(token.decimals),
+            'decimals': token.decimals,
             'total_supply': str(token.total_supply),
             'block_number': token.block_number
         }
@@ -40,7 +40,7 @@ class EthTokenMapper(object):
             pa.field('address', pa.string(), nullable=False),
             pa.field('symbol', pa.string()),
             pa.field('name', pa.string()),
-            pa.field('decimals', pa.string()),
+            pa.field('decimals', pa.uint64()),
             pa.field('total_supply', pa.string()),
             pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
             pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
