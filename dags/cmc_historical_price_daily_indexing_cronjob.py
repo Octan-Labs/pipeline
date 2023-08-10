@@ -24,6 +24,7 @@ dag = DAG('cmc_historical_price_daily_indexing',
           schedule="@daily",
           max_active_runs=1,
           concurrency=1,
+          tags=['cmc'],
           catchup=False)
 
 env_vars = [
