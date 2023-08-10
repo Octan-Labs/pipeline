@@ -43,7 +43,7 @@ class EthStreamerAdapter:
         w3 = build_web3(self.batch_web3_provider)
         return int(w3.eth.getBlock("latest").number)
 
-    def export_all(self, start_block, end_block):
+    def export_all(self, start_block, end_block, chain):
         # Export blocks and transactions
         blocks, transactions = [], []
         if self._should_export(EntityType.BLOCK) or self._should_export(EntityType.TRANSACTION):
@@ -84,7 +84,7 @@ class EthStreamerAdapter:
         # Export traces
         traces = []
         if self._should_export(EntityType.TRACE):
-            traces = self._export_traces(start_block, end_block)
+            traces = self._export_traces(start_block, end_block, chain)
 
         # Export contracts
         contracts = []
@@ -188,7 +188,7 @@ class EthStreamerAdapter:
         token_transfers = exporter.get_items('token_transfer')
         return token_transfers
 
-    def _export_traces(self, start_block, end_block):
+    def _export_traces(self, start_block, end_block, chain):
         exporter = InMemoryItemExporter(item_types=['trace'])
         job = ExportTracesJob(
             start_block=start_block,
@@ -196,7 +196,8 @@ class EthStreamerAdapter:
             batch_size=self.batch_size,
             web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
             max_workers=self.max_workers,
-            item_exporter=exporter
+            item_exporter=exporter,
+            chain=chain
         )
         job.run()
         traces = exporter.get_items('trace')

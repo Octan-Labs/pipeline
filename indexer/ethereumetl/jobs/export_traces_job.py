@@ -30,6 +30,7 @@ from ethereumetl.service.eth_special_trace_service import EthSpecialTraceService
 from ethereumetl.service.trace_id_calculator import calculate_trace_ids
 from ethereumetl.service.trace_status_calculator import calculate_trace_statuses
 from ethereumetl.utils import validate_range
+from ethereumetl.jobs.utils import ArbTrace
 
 
 class ExportTracesJob(BaseJob):
@@ -42,7 +43,8 @@ class ExportTracesJob(BaseJob):
             item_exporter,
             max_workers,
             include_genesis_traces=False,
-            include_daofork_traces=False):
+            include_daofork_traces=False,
+            chain='eth'):
         validate_range(start_block, end_block)
         self.start_block = start_block
         self.end_block = end_block
@@ -57,6 +59,9 @@ class ExportTracesJob(BaseJob):
         self.special_trace_service = EthSpecialTraceService()
         self.include_genesis_traces = include_genesis_traces
         self.include_daofork_traces = include_daofork_traces
+        self.chain = chain
+        if self.chain == "arbitrum":
+            self.arb_trace = ArbTrace(self.web3)
 
     def _start(self):
         self.item_exporter.open()
@@ -86,7 +91,12 @@ class ExportTracesJob(BaseJob):
             daofork_traces = self.special_trace_service.get_daofork_traces()
             all_traces.extend(daofork_traces)
 
-        json_traces = self.web3.parity.traceFilter(filter_params)
+        json_traces = []
+
+        if self.chain == 'arbitrum':
+            json_traces = self.arb_trace.trace_filter(filter_params)
+        else:
+            json_traces = self.web3.parity.traceFilter(filter_params)
 
         if json_traces is None:
             raise ValueError('Response from the node is None. Is the node fully synced? Is the node started with tracing enabled? Is trace_block API enabled?')

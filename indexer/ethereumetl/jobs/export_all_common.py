@@ -123,7 +123,7 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
         )
 
         streamer_adapter.open()
-        streamer_adapter.export_all(batch_start_block, batch_end_block)
+        streamer_adapter.export_all(batch_start_block, batch_end_block, chain)
         streamer_adapter.close()
         
         # # # finish # # #
