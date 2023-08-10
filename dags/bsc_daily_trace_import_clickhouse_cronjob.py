@@ -51,6 +51,7 @@ with DAG(
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
             "base_s3_url": base_s3_url
         },
+        reset_dag_run=True,
         wait_for_completion=True,
         failed_states=["false"]
     )
