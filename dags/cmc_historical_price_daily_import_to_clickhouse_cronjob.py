@@ -4,7 +4,6 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
 from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.models import Variable
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 default_args = {
     'owner': 'airflow',
@@ -33,8 +32,8 @@ with DAG(
     access_key = Variable.get("s3_access_secret_key")
     secret_key = Variable.get("s3_secret_key")
 
-    ClickHouseOperator(
-        task_id='import_from_s3_to_clickhouse_by_date',
+    import_from_s3_to_clickhouse = ClickHouseOperator(
+        task_id='import_from_s3_to_clickhouse',
         database='default',
         sql=(
             '''
@@ -59,4 +58,4 @@ with DAG(
         clickhouse_conn_id="clickhouse_conn"
     )
 
-    wait_for_eth_daily_non_trace_indexing >> [trigger_import_block, trigger_import_transaction, trigger_import_log, trigger_import_token_transfer]
+    wait_for_cmc_historical_price_daily_indexing >> import_from_s3_to_clickhouse
