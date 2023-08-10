@@ -23,7 +23,7 @@ with DAG(
 ) as dag:
     wait_for_bsc_daily_non_trace_indexing = ExternalTaskSensor(
         task_id='wait_for_bsc_daily_non_trace_indexing',
-        external_dag_id='bsc_daily_trace_indexing',
+        external_dag_id='bsc_daily_non_trace_indexing',
         failed_states=["failed"]
     )
 
