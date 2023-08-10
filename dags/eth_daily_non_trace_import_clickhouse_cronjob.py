@@ -23,7 +23,7 @@ with DAG(
 ) as dag:
     wait_for_eth_daily_non_trace_indexing = ExternalTaskSensor(
         task_id='wait_for_eth_daily_non_trace_indexing',
-        external_dag_id='eth_daily_trace_indexing',
+        external_dag_id='eth_daily_non_trace_indexing',
         external_task_id='eth_indexer',
         failed_states=["failed", "skipped"]
     )
