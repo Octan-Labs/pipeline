@@ -24,7 +24,8 @@ with DAG(
     wait_for_bsc_daily_trace_indexing = ExternalTaskSensor(
         task_id='wait_for_bsc_daily_trace_indexing',
         external_dag_id='bsc_daily_trace_indexing',
-        failed_states=["failed"]
+        failed_states=["failed"],
+        check_existence=True,
     )
 
     base_s3_url = Variable.get("bsc_s3_url")
