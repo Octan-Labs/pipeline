@@ -74,7 +74,7 @@ with DAG(
         ]
 
         KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.8',
+            image='octanlabs/ethereumetl:0.0.9',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=default_bsc_indexer_secrets + indexer_aws_secrets,
