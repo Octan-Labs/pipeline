@@ -64,7 +64,8 @@ class FsspecItemExporter(ConsoleItemExporter):
 
     def close(self):
         for item_type in self.filename_without_ext_mapping.keys():
-            close_silently(self.writer_mapping[item_type])
+            if self.writer_mapping[item_type] is not None:
+                close_silently(self.writer_mapping[item_type])
             counter = self.counter_mapping[item_type]
             if counter is not None:
                 count = counter.increment() - 1
