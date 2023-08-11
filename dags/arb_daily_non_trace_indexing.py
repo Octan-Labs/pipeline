@@ -67,7 +67,7 @@ with DAG(
     ]
 
     arb_daily_non_trace_indexing = KubernetesPodOperator(
-        image='octanlabs/ethereumetl:0.0.7',
+        image='octanlabs/ethereumetl:0.0.8',
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,

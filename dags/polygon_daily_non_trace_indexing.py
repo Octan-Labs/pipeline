@@ -103,7 +103,7 @@ with DAG(
         ]
 
         polygon_daily_non_trace_indexing_tasks.append(KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.7',
+            image='octanlabs/ethereumetl:0.0.8',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=default_polygon_indexer_secrets + indexer_aws_secrets,

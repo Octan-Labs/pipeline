@@ -82,7 +82,7 @@ with DAG(
         ]
 
         bsc_daily_indexing_cronjob.append(KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.7',
+            image='octanlabs/ethereumetl:0.0.8',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=secrets,
