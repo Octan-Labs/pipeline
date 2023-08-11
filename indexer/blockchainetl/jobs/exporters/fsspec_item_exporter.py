@@ -22,9 +22,9 @@ class FsspecItemExporter(ConsoleItemExporter):
     
     def open(self):
         for item_type, filename in self.filename_without_ext_mapping.items():
-            file = get_file_handle(filename + '.{file_format}'.format(file_format=self.file_format), binary=True)
-            writer = ParquetWriter(file.path, self.mapper_mapping[item_type].schema(), filesystem=file.fs, compression=self.compression)
-            self.writer_mapping[item_type] = writer
+            # file = get_file_handle(filename + '.{file_format}'.format(file_format=self.file_format), binary=True)
+            # writer = ParquetWriter(file.path, self.mapper_mapping[item_type].schema(), filesystem=file.fs, compression=self.compression)
+            # self.writer_mapping[item_type] = writer
             self.counter_mapping[item_type] = AtomicCounter()
 
     # Assume items sorted by item['type']
@@ -40,12 +40,16 @@ class FsspecItemExporter(ConsoleItemExporter):
                 del item['type']
                 curr_item_list.append(item)
 
-                writer = self.writer_mapping[curr_item_type]
-                table = pa.Table.from_pylist(curr_item_list).cast(self.mapper_mapping[curr_item_type].schema())
-                writer.write_table(table)
-                
-                counter = self.counter_mapping[curr_item_type]
-                counter.increment(table.num_rows)
+                # only write file when have items
+                if len(curr_item_list) > 0:
+                    file = get_file_handle(self.filename_without_ext_mapping[curr_item_type] + '.{file_format}'.format(file_format=self.file_format), binary=True)
+                    writer = ParquetWriter(file.path, self.mapper_mapping[curr_item_type].schema(), filesystem=file.fs, compression=self.compression)
+                    table = pa.Table.from_pylist(curr_item_list).cast(self.mapper_mapping[curr_item_type].schema())
+                    writer.write_table(table)
+                    counter = self.counter_mapping[curr_item_type]
+                    counter.increment(table.num_rows)
+
+                # iterate to next item type  
                 curr_item_type = item.get('type')
                 curr_item_list = []
             
