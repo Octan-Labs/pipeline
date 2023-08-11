@@ -79,6 +79,11 @@ with DAG(
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=default_bsc_indexer_secrets + indexer_aws_secrets,
+            container_resources=k8s.V1ResourceRequirements(
+                requests={
+                    'memory': '12G',
+                },
+            ),
             name='bsc_indexer_{}'.format(hour),
             task_id='bsc_indexer_{}'.format(hour)
         )
