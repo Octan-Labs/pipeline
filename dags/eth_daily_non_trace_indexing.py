@@ -68,6 +68,11 @@ with DAG(
                 arguments=['export_all'],
                 env_vars=env_vars,
                 secrets=secrets,
+                container_resources=k8s.V1ResourceRequirements(
+                    requests={
+                        'memory': '24G',
+                    },
+                ),
                 name='eth_indexer',
                 task_id='eth_indexer',
             )
