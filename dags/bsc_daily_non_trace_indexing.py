@@ -85,6 +85,6 @@ with DAG(
             ),
             name='bsc_non_trace_index',
             task_id='bsc_non_trace_index_{}'.format(hour),
-            random_name_suffix=False,
+            random_name_suffix=True,
         )
 

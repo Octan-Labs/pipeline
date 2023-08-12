@@ -75,7 +75,7 @@ with DAG(
         ),
         name='eth_trace_index',
         task_id='eth_trace_index',
-        random_name_suffix=False,
+        random_name_suffix=True,
     )
 
     base_s3_url = Variable.get("eth_s3_url")

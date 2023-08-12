@@ -72,7 +72,7 @@ with DAG(
         secrets=secrets,
         name='arb_non_trace_index',
         task_id='arb_non_trace_index',
-        random_name_suffix=False,
+        random_name_suffix=True,
     )
 
     arb_daily_non_trace_indexing

@@ -6,9 +6,6 @@ from airflow.models import Variable
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from kubernetes.client import models as k8s
 
-class MyKubernetesPodOperator(KubernetesPodOperator):
-    template_fields = KubernetesPodOperator.template_fields + ('name',)
-
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2015, 7, 31),
@@ -77,9 +74,9 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name="{{ dag_run.conf['name'] }}",
+        name="eth_daily_non_trace_index",
         task_id="index_task",
-        random_name_suffix=False,
+        random_name_suffix=True,
     )
 
     base_s3_url = Variable.get("eth_s3_url")

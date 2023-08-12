@@ -112,5 +112,5 @@ with DAG(
                 },
             ),
             task_id='polygon_non_trace_index_{}'.format(hour),
-            random_name_suffix=False,
+            random_name_suffix=True,
         )
