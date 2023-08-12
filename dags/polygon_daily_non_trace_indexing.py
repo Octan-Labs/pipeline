@@ -26,7 +26,7 @@ with DAG(
     catchup=False,
     max_active_runs=1,
     concurrency=1,
-    tags=['polygon']
+    tags=['pol']
 ) as dag:
 
     default_polygon_indexer_secrets = [
@@ -111,7 +111,7 @@ with DAG(
                     'memory': '8G',
                 },
             ),
-            name='polygon_non_trace_index',
-            task_id='polygon_non_trace_index',
+            name='pol_non_trace_index',
+            task_id='pol_non_trace_index',
             random_name_suffix=False,
         )
