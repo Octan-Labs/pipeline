@@ -5,12 +5,6 @@ from datetime import datetime, timedelta
 
 from kubernetes.client import models as k8s
 
-class MyKubernetesPodOperator(KubernetesPodOperator):
-    template_fields = (
-        "name",
-        "task_id",
-    ) + KubernetesPodOperator.template_fields
-
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2020, 8, 30),
@@ -79,7 +73,7 @@ with DAG(
                 value='block, transaction, log, token_transfer')
         ]
 
-        MyKubernetesPodOperator(
+        KubernetesPodOperator(
             image='octanlabs/ethereumetl:0.0.10',
             arguments=['export_all'],
             env_vars=env_vars,
@@ -89,7 +83,8 @@ with DAG(
                     'memory': '8G',
                 },
             ),
-            name="bsc_non_trace_index",
+            name='bsc_non_trace_index',
             task_id='bsc_non_trace_index_{}'.format(hour),
+            random_name_suffix=False,
         )
 

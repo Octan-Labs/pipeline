@@ -111,8 +111,7 @@ with DAG(
                     'memory': '8G',
                 },
             ),
-            name='polygon_non_trace_index_{}_{}'.format(
-                "{{ data_interval_start.subtract(days=1) | ds }}", hour),
-            task_id='polygon_non_trace_index_{}_{}'.format(
-                "{{ data_interval_start.subtract(days=1) | ds }}", hour),
+            name='polygon_non_trace_index',
+            task_id='polygon_non_trace_index',
+            random_name_suffix=False,
         )

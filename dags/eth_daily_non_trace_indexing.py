@@ -75,10 +75,9 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name='eth_non_trace_index_{}'.format(
-            "{{ data_interval_start.subtract(days=1) | ds }}"),
-        task_id='eth_non_trace_index_{}'.format(
-            "{{ data_interval_start.subtract(days=1) | ds }}"),
+        name='eth_non_trace_index',
+        task_id='eth_non_trace_index',
+        random_name_suffix=False,
     )
 
     eth_daily_non_trace_indexing_task
