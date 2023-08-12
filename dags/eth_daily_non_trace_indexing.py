@@ -24,6 +24,7 @@ default_args = {
 }
 
 with DAG(
+    "eth_daily_non_trace_indexing",
     default_args=default_args,
     description='Run eth indexer daily',
     schedule="@daily",
