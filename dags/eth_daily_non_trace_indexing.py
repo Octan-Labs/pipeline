@@ -6,10 +6,6 @@ from airflow.models import Variable
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from kubernetes.client import models as k8s
 
-
-class MyKubernetesPodOperator(KubernetesPodOperator):
-    template_fields = KubernetesPodOperator.template_fields + ("name",)
-
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2015, 7, 31),
@@ -68,7 +64,7 @@ with DAG(
         ),
     ]
 
-    eth_daily_non_trace_indexing_task = MyKubernetesPodOperator(
+    eth_daily_non_trace_indexing_task = KubernetesPodOperator(
         image='octanlabs/ethereumetl:0.0.10',
         arguments=['export_all'],
         env_vars=env_vars,
@@ -78,7 +74,7 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name= "eth-daily-non-trace-{{ data_interval_start.subtract(days=1) | ds }}",
+        name= "{{ data_interval_start.subtract(days=1) | ds }}",
         task_id="index",
         random_name_suffix=False,
     )
