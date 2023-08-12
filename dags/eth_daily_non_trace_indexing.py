@@ -9,7 +9,6 @@ from kubernetes.client import models as k8s
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2015, 7, 31),
-    'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
     # KubernetesPodOperator Defaults
