@@ -103,7 +103,8 @@ import_from_s3_to_clickhouse = ClickHouseOperator(
             date="{{ data_interval_start.subtract(days=1) | ds }}"
         )
     ),
-    clickhouse_conn_id="clickhouse_conn"
+    clickhouse_conn_id="clickhouse_conn",
+    dag=dag,
 )
 
 cmc_historical_price_daily_indexing_cronjob >> import_from_s3_to_clickhouse
