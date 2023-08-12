@@ -90,7 +90,6 @@ with DAG(
                 },
             ),
             name="bsc_non_trace_index",
-            task_id='bsc_non_trace_index_{}_{}'.format(
-                "{{ data_interval_start.subtract(days=1) | ds }}", hour),
+            task_id='bsc_non_trace_index_{}'.format(hour),
         )
 
