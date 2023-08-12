@@ -70,6 +70,8 @@ with DAG(
         ),
     ]
 
+    pod_name = "{{ data_interval_start.subtract(days=1) | ds }}"
+
     eth_daily_non_trace_indexing_task = MyKubernetesPodOperator(
         image='octanlabs/ethereumetl:0.0.10',
         arguments=['export_all'],
@@ -80,7 +82,7 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name= "{{ data_interval_start.subtract(days=1) | ds }}",
+        name=pod_name,
         task_id="index",
         random_name_suffix=False,
     )
