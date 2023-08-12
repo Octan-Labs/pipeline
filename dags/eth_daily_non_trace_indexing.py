@@ -8,7 +8,7 @@ from kubernetes.client import models as k8s
 
 
 class MyKubernetesPodOperator(KubernetesPodOperator):
-    template_fields = KubernetesPodOperator.template_fields + ("task_id",)
+    template_fields = KubernetesPodOperator.template_fields + ("name",)
 
 default_args = {
     'owner': 'airflow',
@@ -78,7 +78,7 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        task_id="{{run_id}}",
+        name= "eth-daily-non-trace-index-{{ data_interval_start.subtract(days=1) | ds }}",
         random_name_suffix=False,
     )
 
