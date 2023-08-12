@@ -70,8 +70,10 @@ with DAG(
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
-        name='arb_non_trace_indexer',
-        task_id='arb_non_trace_indexer',
+        name='arb_non_trace_index_{}'.format(
+            "{{ data_interval_start.subtract(days=1) | ds }}"),
+        task_id='arb_non_trace_index_{}'.format(
+            "{{ data_interval_start.subtract(days=1) | ds }}"),
     )
 
     arb_daily_non_trace_indexing

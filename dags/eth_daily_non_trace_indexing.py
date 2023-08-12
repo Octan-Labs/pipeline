@@ -30,10 +30,13 @@ with DAG(
 ) as dag:
 
     env_vars = [
-        k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
-        k8s.V1EnvVar(name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
-        k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
-        k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer')
+        k8s.V1EnvVar(
+            name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(
+            name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'),
+        k8s.V1EnvVar(name='ENTITY_TYPES',
+                     value='block, transaction, log, token_transfer')
     ]
     secrets = [
         Secret(
@@ -62,19 +65,20 @@ with DAG(
         ),
     ]
 
-    eth_daily_non_trace_indexing_cronjob = KubernetesPodOperator(
-                image='octanlabs/ethereumetl:0.0.9',
-                arguments=['export_all'],
-                env_vars=env_vars,
-                secrets=secrets,
-                container_resources=k8s.V1ResourceRequirements(
-                    requests={
-                        'memory': '24G',
-                    },
-                ),
-                name='eth_indexer',
-                task_id='eth_indexer',
-            )
+    eth_daily_non_trace_indexing_task = KubernetesPodOperator(
+        image='octanlabs/ethereumetl:0.0.9',
+        arguments=['export_all'],
+        env_vars=env_vars,
+        secrets=secrets,
+        container_resources=k8s.V1ResourceRequirements(
+            requests={
+                'memory': '24G',
+            },
+        ),
+        name='eth_non_trace_index_{}'.format(
+            "{{ data_interval_start.subtract(days=1) | ds }}"),
+        task_id='eth_non_trace_index_{}'.format(
+            "{{ data_interval_start.subtract(days=1) | ds }}"),
+    )
 
-
-    eth_daily_non_trace_indexing_cronjob
+    eth_daily_non_trace_indexing_task
