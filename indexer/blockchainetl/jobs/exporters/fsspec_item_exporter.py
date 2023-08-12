@@ -21,10 +21,7 @@ class FsspecItemExporter(ConsoleItemExporter):
         return ['parquet', 'csv']
     
     def open(self):
-        for item_type, filename in self.filename_without_ext_mapping.items():
-            # file = get_file_handle(filename + '.{file_format}'.format(file_format=self.file_format), binary=True)
-            # writer = ParquetWriter(file.path, self.mapper_mapping[item_type].schema(), filesystem=file.fs, compression=self.compression)
-            # self.writer_mapping[item_type] = writer
+        for item_type in self.filename_without_ext_mapping.items():
             self.counter_mapping[item_type] = AtomicCounter()
 
     # Assume items sorted by item['type']
@@ -46,8 +43,8 @@ class FsspecItemExporter(ConsoleItemExporter):
                     writer = ParquetWriter(file.path, self.mapper_mapping[curr_item_type].schema(), filesystem=file.fs, compression=self.compression)
                     table = pa.Table.from_pylist(curr_item_list).cast(self.mapper_mapping[curr_item_type].schema())
                     writer.write_table(table)
-                    counter = self.counter_mapping[curr_item_type]
-                    counter.increment(table.num_rows)
+                    close_silently(writer)
+                    self.logger.info('{} items exported: {} into {}'.format(curr_item_type, table.num_rows, (self.filename_without_ext_mapping[curr_item_type] + '.' + self.file_format)))
 
                 # iterate to next item type  
                 curr_item_type = item.get('type')
@@ -63,11 +60,4 @@ class FsspecItemExporter(ConsoleItemExporter):
         pass
 
     def close(self):
-        for item_type in self.filename_without_ext_mapping.keys():
-            if self.writer_mapping[item_type] is not None:
-                close_silently(self.writer_mapping[item_type])
-            counter = self.counter_mapping[item_type]
-            if counter is not None:
-                count = counter.increment() - 1
-                if count > 0:
-                    self.logger.info('{} items exported: {} into {}'.format(item_type, count, (self.filename_without_ext_mapping[item_type] + '.' + self.file_format)))
+        pass
