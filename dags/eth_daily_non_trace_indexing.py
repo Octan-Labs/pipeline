@@ -77,7 +77,7 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name="{{ dag_run.conf['name'] }}"
+        name="{{ dag_run.conf['name'] }}",
         task_id="index_task",
         random_name_suffix=False,
     )
