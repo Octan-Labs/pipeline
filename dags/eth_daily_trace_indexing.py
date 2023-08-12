@@ -63,7 +63,7 @@ with DAG(
     ]
 
     eth_daily_trace_index_task = KubernetesPodOperator(
-        image='octanlabs/ethereumetl:0.0.9',
+        image='octanlabs/ethereumetl:0.0.10',
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
