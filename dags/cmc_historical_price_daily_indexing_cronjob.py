@@ -30,8 +30,10 @@ dag = DAG('cmc_historical_price_daily_indexing',
           catchup=False)
 
 env_vars = [
-    k8s.V1EnvVar(name='START_DATE', value="{{ data_interval_start.subtract(days=1) | ds }}"),
-    k8s.V1EnvVar(name='END_DATE', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+    k8s.V1EnvVar(name='START_DATE',
+                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
+    k8s.V1EnvVar(name='END_DATE',
+                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
     k8s.V1EnvVar(name='S3_REGION', value='ap-southeast-1')
 ]
 secrets = [
@@ -62,46 +64,46 @@ secrets = [
 ]
 
 cmc_historical_price_daily_indexing_cronjob = KubernetesPodOperator(
-            image='octanlabs/cmc-historical-crawl:latest',
-            cmds=['npm', "run", "historical"],
-            env_vars=env_vars,
-            secrets=secrets,
-            name='cmc_daily_historical_price_indexer',
-            task_id='cmc_daily_historical_price_indexer',
-            retries=5,
-            retry_delay=timedelta(minutes=5),
-            dag=dag,
+    image='octanlabs/cmc-historical-crawl:latest',
+    cmds=['npm', "run", "historical"],
+    env_vars=env_vars,
+    secrets=secrets,
+    name='cmc_daily_historical_price_indexer',
+    task_id='cmc_daily_historical_price_indexer',
+    retries=5,
+    retry_delay=timedelta(minutes=5),
+    dag=dag,
+)
+
+base_s3_url = Variable.get("cmc_s3_url")
+
+access_key = Variable.get("s3_access_secret_key")
+secret_key = Variable.get("s3_secret_key")
+
+import_from_s3_to_clickhouse = ClickHouseOperator(
+    task_id='import_from_s3_to_clickhouse',
+    database='default',
+    sql=(
+        '''
+            INSERT INTO cmc_historical
+            SELECT *
+            FROM
+            s3(
+            '{base_s3_url}/cmc_historicals/{date}.csv',
+            '{access_key}', 
+            '{secret_key}', 
+            'CSV'
+            )
+            SETTINGS parallel_distributed_insert_select=1, async_insert=1, wait_for_async_insert=1,
+            max_threads=4, max_insert_threads=4, input_format_parallel_parsing=0;
+        '''.format(
+            base_s3_url=base_s3_url,
+            access_key=access_key,
+            secret_key=secret_key,
+            date="{{ data_interval_start.subtract(days=1) | ds }}"
         )
+    ),
+    clickhouse_conn_id="clickhouse_conn"
+)
 
-    base_s3_url = Variable.get("cmc_s3_url")
-
-    access_key = Variable.get("s3_access_secret_key")
-    secret_key = Variable.get("s3_secret_key")
-
-    import_from_s3_to_clickhouse = ClickHouseOperator(
-        task_id='import_from_s3_to_clickhouse',
-        database='default',
-        sql=(
-            '''
-                INSERT INTO cmc_historical
-                SELECT *
-                FROM
-                s3(
-                '{base_s3_url}/cmc_historicals/{date}.csv',
-                '{access_key}', 
-                '{secret_key}', 
-                'CSV'
-                )
-                SETTINGS parallel_distributed_insert_select=1, async_insert=1, wait_for_async_insert=1,
-                max_threads=4, max_insert_threads=4, input_format_parallel_parsing=0;
-            '''.format(
-                    base_s3_url = base_s3_url, 
-                    access_key = access_key, 
-                    secret_key = secret_key,
-                    date = "{{ data_interval_start.subtract(days=1) | ds }}"
-                )
-        ),
-        clickhouse_conn_id="clickhouse_conn"
-    )
-
-    cmc_historical_price_daily_indexing_cronjob >> import_from_s3_to_clickhouse
+cmc_historical_price_daily_indexing_cronjob >> import_from_s3_to_clickhouse
