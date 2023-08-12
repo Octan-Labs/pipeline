@@ -82,7 +82,7 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name=pod_name,
+        name="eth_daily_non_trace",
         task_id="index",
         random_name_suffix=False,
     )
