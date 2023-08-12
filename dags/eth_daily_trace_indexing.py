@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
@@ -79,47 +80,37 @@ with DAG(
     )
 
     base_s3_url = Variable.get("eth_s3_url")
+    access_key = Variable.get("s3_access_secret_key")
+    secret_key = Variable.get("s3_secret_key")
+    import_tasks = []
 
-    trigger_import_trace = TriggerDagRunOperator(
-        task_id='trigger_import_trace',
-        trigger_dag_id='import_from_s3_to_clickhouse_by_date',
-        conf={
-            "table_name": "ethereum_trace",
-            "schema": "traces",
-            "date": "{{ data_interval_start.subtract(days=1) | ds }}",
-            "base_s3_url": base_s3_url
-        },
-        reset_dag_run=True,
-        wait_for_completion=True,
-        failed_states=["false"]
-    )
+    for entity_type in ['trace', 'contract', 'token']:
+        import_tasks.append(ClickHouseOperator(
+            task_id='import_{}_from_s3_to_clickhouse_by_date'.format(entity_type),
+            database='default',
+            sql=(
+                '''
+                    INSERT INTO {table_name}
+                    SELECT *
+                    FROM
+                    s3(
+                    '{base_s3_url}/{schema}/date%3D{date}/*.parquet',
+                    '{access_key}', 
+                    '{secret_key}', 
+                    'Parquet'
+                    )
+                    SETTINGS parallel_distributed_insert_select=1, async_insert=1, wait_for_async_insert=1,
+                    max_threads=4, max_insert_threads=4, input_format_parallel_parsing=0;
+                '''.format(
+                        table_name = "ethereum_{}".format(entity_type),
+                        schema = "{}s".format(entity_type),
+                        date = "{{ data_interval_start.subtract(days=1) | ds }}",
+                        base_s3_url = base_s3_url, 
+                        access_key = access_key, 
+                        secret_key = secret_key
+                    )
+            ),
+            clickhouse_conn_id="clickhouse_conn"
+        ))
 
-    trigger_import_token = TriggerDagRunOperator(
-        task_id='trigger_import_token',
-        trigger_dag_id='import_from_s3_to_clickhouse_by_date',
-        conf={
-            "table_name": "ethereum_token",
-            "schema": "tokens",
-            "date": "{{ data_interval_start.subtract(days=1) | ds }}",
-            "base_s3_url": base_s3_url
-        },
-        reset_dag_run=True,
-        wait_for_completion=True,
-        failed_states=["false"]
-    )
-
-    trigger_import_contract = TriggerDagRunOperator(
-        task_id='trigger_import_contract',
-        trigger_dag_id='import_from_s3_to_clickhouse_by_date',
-        conf={
-            "table_name": "ethereum_contract",
-            "schema": "contracts",
-            "date": "{{ data_interval_start.subtract(days=1) | ds }}",
-            "base_s3_url": base_s3_url
-        },
-        reset_dag_run=True,
-        wait_for_completion=True,
-        failed_states=["false"]
-    )
-
-    eth_daily_trace_index_task >> [trigger_import_trace, trigger_import_token, trigger_import_contract]
+    eth_daily_trace_index_task >> import_tasks
