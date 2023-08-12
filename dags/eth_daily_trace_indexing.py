@@ -80,12 +80,12 @@ with DAG(
 
     base_s3_url = Variable.get("eth_s3_url")
 
-    trigger_import_transaction = TriggerDagRunOperator(
-        task_id='trigger_import_transaction',
+    trigger_import_trace = TriggerDagRunOperator(
+        task_id='trigger_import_trace',
         trigger_dag_id='import_from_s3_to_clickhouse_by_date',
         conf={
-            "table_name": "ethereum_transaction",
-            "schema": "transactions",
+            "table_name": "ethereum_trace",
+            "schema": "traces",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
             "base_s3_url": base_s3_url
         },
@@ -94,12 +94,12 @@ with DAG(
         failed_states=["false"]
     )
 
-    trigger_import_log = TriggerDagRunOperator(
-        task_id='trigger_import_log',
+    trigger_import_token = TriggerDagRunOperator(
+        task_id='trigger_import_token',
         trigger_dag_id='import_from_s3_to_clickhouse_by_date',
         conf={
-            "table_name": "ethereum_log",
-            "schema": "logs",
+            "table_name": "ethereum_token",
+            "schema": "tokens",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
             "base_s3_url": base_s3_url
         },
@@ -108,12 +108,12 @@ with DAG(
         failed_states=["false"]
     )
 
-    trigger_import_token_transfer = TriggerDagRunOperator(
-        task_id='trigger_import_token_transfer',
+    trigger_import_contract = TriggerDagRunOperator(
+        task_id='trigger_import_contract',
         trigger_dag_id='import_from_s3_to_clickhouse_by_date',
         conf={
-            "table_name": "ethereum_token_transfer",
-            "schema": "token_transfers",
+            "table_name": "ethereum_contract",
+            "schema": "contracts",
             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
             "base_s3_url": base_s3_url
         },
@@ -122,4 +122,4 @@ with DAG(
         failed_states=["false"]
     )
 
-    eth_daily_trace_index_task >> [trigger_import_block, trigger_import_transaction, trigger_import_log, trigger_import_token_transfer]
+    eth_daily_trace_index_task >> [trigger_import_trace, trigger_import_token, trigger_import_contract]
