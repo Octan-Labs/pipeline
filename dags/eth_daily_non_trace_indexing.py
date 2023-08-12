@@ -78,7 +78,8 @@ with DAG(
                 'memory': '24G',
             },
         ),
-        name= "eth-daily-non-trace-index-{{ data_interval_start.subtract(days=1) | ds }}",
+        name= "eth-daily-non-trace-{{ data_interval_start.subtract(days=1) | ds }}",
+        task_id="index",
         random_name_suffix=False,
     )
 
