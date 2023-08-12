@@ -89,8 +89,7 @@ with DAG(
                     'memory': '8G',
                 },
             ),
-            name='bsc_non_trace_index_{}_{}'.format(
-                "{{ data_interval_start.subtract(days=1) | ds }}", hour),
+            name="bsc_non_trace_index",
             task_id='bsc_non_trace_index_{}_{}'.format(
                 "{{ data_interval_start.subtract(days=1) | ds }}", hour),
         )
