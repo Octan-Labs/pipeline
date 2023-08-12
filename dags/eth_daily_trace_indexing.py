@@ -4,7 +4,6 @@ from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
 from airflow.models import Variable
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from kubernetes.client import models as k8s
 
 default_args = {
@@ -26,7 +25,7 @@ with DAG(
     description='Run eth indexer daily',
     schedule="@daily",
     catchup=True,
-    max_active_runs=4,
+    max_active_runs=2,
     tags=['eth']
 ) as dag:
 
