@@ -25,6 +25,8 @@ default_args = {
     'is_delete_operator_pod': True
 }
 
+pod_name = "{{ data_interval_start.subtract(days=1) | ds }}"
+
 with DAG(
     "eth_daily_non_trace_indexing",
     default_args=default_args,
@@ -69,8 +71,6 @@ with DAG(
             key='aws_secret_access_key'
         ),
     ]
-
-    pod_name = "{{ data_interval_start.subtract(days=1) | ds }}"
 
     eth_daily_non_trace_indexing_task = MyKubernetesPodOperator(
         image='octanlabs/ethereumetl:0.0.10',
