@@ -36,7 +36,9 @@ with DAG(
         k8s.V1EnvVar(
             name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
         k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'),
-        k8s.V1EnvVar(name='ENTITY_TYPES', value='trace, contract, token')
+        k8s.V1EnvVar(name='ENTITY_TYPES', value='trace, contract, token'),
+        k8s.V1EnvVar(name='MAX_WORKERS', value='1'),
+        k8s.V1EnvVar(name='MAX_WORKERS', value='500')
     ]
     secrets = [
         Secret(
