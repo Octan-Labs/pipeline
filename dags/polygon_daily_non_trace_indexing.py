@@ -102,7 +102,7 @@ with DAG(
         ]
 
         KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.10',
+            image='octanlabs/ethereumetl:0.0.11',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=default_polygon_indexer_secrets + indexer_aws_secrets,

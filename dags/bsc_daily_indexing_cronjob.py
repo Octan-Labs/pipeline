@@ -81,7 +81,7 @@
 #         ]
 
 #         bsc_daily_indexing_cronjob.append(KubernetesPodOperator(
-#             image='octanlabs/ethereumetl:0.0.10',
+#             image='octanlabs/ethereumetl:0.0.11',
 #             arguments=['export_all'],
 #             env_vars=env_vars,
 #             secrets=secrets,
