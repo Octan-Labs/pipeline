@@ -44,6 +44,7 @@ from os import environ
                    'or GCS bucket e.g. gs://your-bucket-name; '
                    'or kafka, output name and connection host:port e.g. kafka/127.0.0.1:9092 '
                    'or Kinesis, e.g. kinesis://your-data-stream-name'
+                   'or Clickhouse, e.g clickhouse://127.0.0.1:8123/your-database-name?table_prefix=your-table-prefix'
                    'If not specified will print to console')
 @click.option('-s', '--start-block', default=lambda: environ.get("START_BLOCK"), show_default=True, type=int, help='Start block')
 @click.option('-e', '--entity-types', default=lambda: environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_NO_TRACE_SUPPORT)), show_default=True, type=str,
@@ -92,10 +93,10 @@ def parse_entity_types(entity_types):
 
     # validate passed types
     for entity_type in entity_types:
-        if entity_type not in EntityType.ALL_NO_TRACE_SUPPORT:
+        if entity_type not in EntityType.ALL_TRACE_SUPPORT:
             raise click.BadOptionUsage(
                 '--entity-type', '{} is not an available entity type. Supply a comma separated list of types from {}'
-                    .format(entity_type, ','.join(EntityType.ALL_NO_TRACE_SUPPORT)))
+                    .format(entity_type, ','.join(EntityType.ALL_TRACE_SUPPORT)))
 
     return entity_types
 

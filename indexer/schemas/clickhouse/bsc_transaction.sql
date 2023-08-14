@@ -1,9 +1,10 @@
-CREATE TABLE IF NOT EXISTS bsc_transaction {
+CREATE TABLE IF NOT EXISTS bsc_transaction 
+(
     hash FixedString(66),
     nonce UInt256,
     transaction_index UInt64,
     from_address FixedString(42),
-    to_address FixedString(42),
+    to_address Nullable(FixedString(42)),
     value UInt256,
     gas UInt256,
     gas_price UInt256,
@@ -11,13 +12,17 @@ CREATE TABLE IF NOT EXISTS bsc_transaction {
     block_timestamp DateTime,
     block_number UInt64,
     block_hash FixedString(66),
-    max_fee_per_gas UInt256,
-    max_priority_fee_per_gas UInt256,
+    max_fee_per_gas Nullable(UInt256),
+    max_priority_fee_per_gas Nullable(UInt256),
     transaction_type UInt8,
-    receipt_cumulative_gas_used UInt256,
-    receipt_gas_used UInt256,
-    receipt_contract_address FixedString(42),
-    receipt_root String,
+    receipt_cumulative_gas_used Nullable(UInt256),
+    receipt_gas_used Nullable(UInt256),
+    receipt_contract_address Nullable(FixedString(42)),
+    receipt_root Nullable(String),
     receipt_status UInt8,
-    receipt_effective_gas_price UInt256
-}
+    receipt_effective_gas_price Nullable(UInt256)
+)
+    ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{shard}/{database}/{table}', '{replica}')
+    ORDER BY (block_number, hash, transaction_index)
+    PARTITION BY toYYYYMM(block_timestamp)
+    SETTINGS index_granularity = 8192, storage_policy = 's3';
