@@ -36,7 +36,7 @@ if (
 const timeStart = Math.floor(new Date(startDate).setUTCHours(0, 0, 0) / 1000);
 const timeEnd = Math.floor(new Date(endDate).setUTCHours(23, 59, 59) / 1000);
 
-const filename = `cmc_historical_price_${timeStart}_${timeEnd}.csv`;
+const filename = `start=${startDate}_end=${endDate}.csv`;
 
 const instance = axios.create({
 	baseURL: "https://api.coinmarketcap.com/data-api/v3/cryptocurrency",
