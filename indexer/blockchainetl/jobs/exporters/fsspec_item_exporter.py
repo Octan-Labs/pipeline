@@ -43,6 +43,7 @@ class FsspecItemExporter(ConsoleItemExporter):
                     writer = ParquetWriter(file.path, self.mapper_mapping[curr_item_type].schema(), filesystem=file.fs, compression=self.compression)
                     table = pa.Table.from_pylist(curr_item_list).cast(self.mapper_mapping[curr_item_type].schema())
                     writer.write_table(table)
+                    file.close()
                     self.logger.info('{} items exported: {} into {}'.format(curr_item_type, table.num_rows, (self.filename_without_ext_mapping[curr_item_type] + '.' + self.file_format)))
 
                 # iterate to next item type  
