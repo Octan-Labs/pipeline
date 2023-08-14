@@ -89,7 +89,7 @@ import_from_s3_to_clickhouse = ClickHouseOperator(
             SELECT *
             FROM
             s3(
-            '{base_s3_url}/cmc_historicals/{date}.csv',
+            '{base_s3_url}/cmc_historicals/start={date}_end={date}.csv',
             '{access_key}', 
             '{secret_key}', 
             'CSV'
