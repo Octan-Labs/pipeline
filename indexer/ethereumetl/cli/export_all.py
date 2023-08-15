@@ -51,7 +51,7 @@ logging_basic_config()
 @click.option('-B', '--export-batch-size', default=environ.get("EXPORT_BATCH_SIZE", 100), show_default=True, type=int, help='The number of requests in JSON RPC batches.')
 @click.option('-e', '--entity-types', default=environ.get("ENTITY_TYPES", ','.join(EntityType.ALL_NO_TRACE_SUPPORT)), show_default=True, type=str,
               help='The list of entity types to export.')
-@click.option('-c', '--chain', default=environ.get("CHAIN", 'arbitrum'), show_default=True, type=str, help='The chain network to connect to.')
+@click.option('-c', '--chain', default=environ.get("CHAIN", 'ethereum'), show_default=True, type=str, help='The chain network to connect to.')
 def export_all(start, end, worker_job_index, first_worker_partition_index, partition_to_hour, partition_batch_size, provider_uri, output_dir, max_workers, export_batch_size, entity_types,
                chain='ethereum'):
     """Exports all data for a range of blocks."""
