@@ -7,7 +7,6 @@ from kubernetes.client import models as k8s
 
 default_args = {
     'owner': 'airflow',
-    'depends_on_past': True,
     'start_date': datetime(2020, 8, 30),
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
@@ -25,8 +24,6 @@ with DAG(
     description='Run bsc indexer daily',
     schedule="@daily",
     catchup=False,
-    max_active_runs=1,
-    concurrency=1,
     tags=['bsc']
 ) as dag:
 
@@ -77,10 +74,16 @@ with DAG(
         ]
 
         KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.5',
+            image='octanlabs/ethereumetl:0.0.12',
             arguments=['export_all'],
             env_vars=env_vars,
             secrets=default_bsc_indexer_secrets + indexer_aws_secrets,
-            name='bsc_indexer_{}'.format(hour),
-            task_id='bsc_indexer_{}'.format(hour)
+            container_resources=k8s.V1ResourceRequirements(
+                requests={
+                    'memory': '12G',
+                },
+            ),
+            name='bsc_trace_index',
+            task_id='bsc_trace_index_{}'.format(hour),
+            random_name_suffix=True,
         )

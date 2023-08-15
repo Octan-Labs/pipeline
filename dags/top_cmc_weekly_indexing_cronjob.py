@@ -7,7 +7,7 @@ from kubernetes.client import models as k8s
 
 default_args = {
     'owner': 'airflow',
-    'depends_on_past': True,
+    'depends_on_past': False,
     'start_date': datetime(2023, 7, 20),
     'retries': 7,
     'retry_delay': timedelta(minutes=5),

@@ -7,7 +7,6 @@ from kubernetes.client import models as k8s
 
 default_args = {
     'owner': 'airflow',
-    'depends_on_past': False,
     'start_date': datetime(2021, 5, 29),
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
@@ -67,12 +66,13 @@ with DAG(
     ]
 
     arb_daily_non_trace_indexing = KubernetesPodOperator(
-        image='octanlabs/ethereumetl:0.0.6',
+        image='octanlabs/ethereumetl:0.0.12',
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
-        name='arb_non_trace_indexer',
-        task_id='arb_non_trace_indexer',
+        name='arb_non_trace_index',
+        task_id='arb_non_trace_index',
+        random_name_suffix=True,
     )
 
     arb_daily_non_trace_indexing
