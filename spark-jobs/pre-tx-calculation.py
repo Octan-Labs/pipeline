@@ -190,14 +190,14 @@ spark.sql("set spark.sql.files.ignoreCorruptFiles=true")
 
 token_transfers_df = spark.read.format("parquet") \
     .schema(token_transfers_schema) \
-    .load(list(map(lambda date: "{base_path}/token_transfers/date={date}/{pattern_file}".format(base_path = base_path, date = date, pattern_file), dates)))
+    .load(list(map(lambda date: "{base_path}/token_transfers/date={date}/{pattern_file}".format(base_path = base_path, date = date, pattern_file = pattern_file), dates)))
 
 
 # In[13]:
 
 
 transactions_df = spark.read.format("parquet") \
-    .load(list(map(lambda date: "{base_path}/transactions/date={date}/{pattern_file}".format(base_path = base_path, date = date, pattern_file), dates)))
+    .load(list(map(lambda date: "{base_path}/transactions/date={date}/{pattern_file}".format(base_path = base_path, date = date, pattern_file = pattern_file), dates)))
 
 
 # In[14]:
