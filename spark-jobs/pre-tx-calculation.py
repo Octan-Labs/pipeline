@@ -13,6 +13,8 @@ parser.add_argument("-s", "--start", help="Start date to calculate", required=Tr
 parser.add_argument("-e", "--end", help="End date to calculate", required=True)
 parser.add_argument("-n", "--name", help="Name of chain to calculate [bsc|eth|polygon]", required=True)
 parser.add_argument("-c", "--cmc_id", help="CMC ID 's native token to calculate [BNB=1839|ETH=1027|MATIC=3890]", required=True)
+parser.add_argument("-ep", "--export_path", help="S3 bucket export path", required=True)
+parser.add_argument("-bh", "--by_hour", help="Calculate by hour")
 
 args=parser.parse_args()
 
@@ -21,7 +23,10 @@ start = args.start
 end = args.end
 name = args.name # [bsc|eth|polygon]
 cmc_id = args.cmc_id  # [BNB=1839|ETH=1027|MATIC=3890]
-
+export_path = args.export_path
+pattern_file = '*.parquet'
+if args.by_hour is not None and args.by_hour.lower() == 'true':
+    pattern_file = '*/*.parquet'
 
 # In[2]:
 
@@ -185,14 +190,14 @@ spark.sql("set spark.sql.files.ignoreCorruptFiles=true")
 
 token_transfers_df = spark.read.format("parquet") \
     .schema(token_transfers_schema) \
-    .load(list(map(lambda date: "{base_path}/token_transfers/date={date}/*.parquet".format(base_path = base_path, date = date), dates)))
+    .load(list(map(lambda date: "{base_path}/token_transfers/date={date}/{pattern_file}".format(base_path = base_path, date = date, pattern_file), dates)))
 
 
 # In[13]:
 
 
 transactions_df = spark.read.format("parquet") \
-    .load(list(map(lambda date: "{base_path}/transactions/date={date}/*.parquet".format(base_path = base_path, date = date), dates)))
+    .load(list(map(lambda date: "{base_path}/transactions/date={date}/{pattern_file}".format(base_path = base_path, date = date, pattern_file), dates)))
 
 
 # In[14]:
@@ -377,9 +382,9 @@ pre_tx_df.repartition(1) \
     .write \
     .option("header",True) \
     .csv(
-        "{base_path}/pre_tx/{time_range}/start={start}_end={end}/" \
+        "{export_path}/pre_tx/{time_range}/start={start}_end={end}/" \
             .format(
-                base_path = base_path, \
+                export_path = export_path, \
                 time_range = time_range, \
                 start = start, \
                 end = end \
@@ -391,77 +396,6 @@ time.time() - start_time
 
 
 # In[ ]:
-
-
-
-
-
-# In[23]:
-
-
-pre_tx_df.createOrReplaceTempView("pre_tx_df")
-
-
-# In[ ]:
-
-
-
-
-
-# In[24]:
-
-
-import time
-from pyspark.sql.functions import format_number
-
-
-start_time = time.time()
-
-tx_volume_df = spark.sql("""
-SELECT from_address as address, SUM(volume) as volume FROM pre_tx_df
-GROUP BY from_address
-UNION ALL
-SELECT to_address as address, SUM(volume) as volume FROM pre_tx_df
-GROUP BY to_address
-UNION ALL
-SELECT token_contract as address, SUM(volume) as volume FROM pre_tx_df
-GROUP BY token_contract
-""").withColumn('volume', regexp_replace(format_number("volume", 10), ",", ""))
-
-
-time.time() - start_time
-
-
-# In[ ]:
-
-
-
-
-
-# In[25]:
-
-
-start_time = time.time()
-
-tx_volume_df.repartition(1) \
-    .write \
-    .option("header",True) \
-    .csv(
-        "{base_path}/tx_volumes/{time_range}/start={start}_end={end}/" \
-            .format(
-                base_path = base_path, \
-                time_range = time_range, \
-                start = start, \
-                end = end \
-            ) \
-    )
-
-time.time() - start_time
-
-
-# In[ ]:
-
-
 
 
 
@@ -472,6 +406,7 @@ spark.stop()
 
 
 # In[ ]:
+
 
 
 
