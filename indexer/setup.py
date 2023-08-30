@@ -43,7 +43,8 @@ setup(
         'requests',
         'fsspec',
         's3fs',
-        'pyarrow'
+        'pyarrow',
+        'clickhouse-connect==0.6.8'
     ],
     extras_require={
         'streaming': [

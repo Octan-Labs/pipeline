@@ -93,6 +93,19 @@ def create_item_exporter(output):
             'contract': 'contracts',
             'token': 'tokens',
         })
+    elif item_exporter_type == ItemExporterType.CLICKHOUSE:
+        from blockchainetl.jobs.exporters.clickhouse_item_exporter import ClickHouseItemExporter
+        from blockchainetl.jobs.exporters.converters.decimal_to_int_item_converter import DecimalToIntItemConverter
+        item_exporter = ClickHouseItemExporter(output, item_type_to_table_mapping={
+            'block': 'block',
+            'transaction': 'transaction',
+            'log': 'log',
+            'token_transfer': 'token_transfer',
+            'trace': 'trace',
+            'contract': 'contract',
+            'token': 'token',
+        },
+        converters=[DecimalToIntItemConverter()])
 
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
@@ -122,6 +135,8 @@ def determine_item_exporter_type(output):
         return ItemExporterType.POSTGRES
     elif output is not None and output.startswith('gs://'):
         return ItemExporterType.GCS
+    elif output is not None and output.startswith('clickhouse'):
+        return ItemExporterType.CLICKHOUSE
     elif output is None or output == 'console':
         return ItemExporterType.CONSOLE
     else:
@@ -135,4 +150,5 @@ class ItemExporterType:
     GCS = 'gcs'
     CONSOLE = 'console'
     KAFKA = 'kafka'
+    CLICKHOUSE = 'clickhouse'
     UNKNOWN = 'unknown'
