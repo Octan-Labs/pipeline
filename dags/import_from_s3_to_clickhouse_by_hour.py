@@ -37,7 +37,7 @@ with DAG(
                 '{secret_key}', 
                 'Parquet'
                 )
-                SETTINGS parallel_distributed_insert_select=1, async_insert=1, wait_for_async_insert=1,
+                SETTINGS async_insert=1, wait_for_async_insert=1,
                 max_threads=4, max_insert_threads=4, input_format_parallel_parsing=0;
             '''.format(
                     table_name = "{{ dag_run.conf['table_name'] }}",
