@@ -70,9 +70,9 @@ with DAG(
         env_vars=env_vars,
         secrets=secrets,
         container_resources=k8s.V1ResourceRequirements(
-            requests={
-                'memory': '4G',
-            },
+            # requests={
+            #     'memory': '4G',
+            # },
         ),
         name='eth_trace_index',
         task_id='eth_trace_index',
