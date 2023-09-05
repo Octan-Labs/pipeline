@@ -27,7 +27,7 @@ with DAG(
     tags=['bsc']
 ) as dag:
 
-    default_bsc_indexer_secrets = [
+    secrets = [
         Secret(
             deploy_type='env',
             deploy_target='PROVIDER_URI',
@@ -39,10 +39,7 @@ with DAG(
             deploy_target='OUTPUT_DIR',
             secret='bsc-indexer-secret',
             key='output-dir'
-        )
-    ]
-
-    indexer_aws_secrets = [
+        ),
         Secret(
             deploy_type='env',
             deploy_target='AWS_ACCESS_KEY_ID',
@@ -57,8 +54,7 @@ with DAG(
         ),
     ]
 
-    for hour in range(24):
-        env_vars = [
+    env_vars = [
             k8s.V1EnvVar(
                 name='START',
                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
@@ -66,25 +62,25 @@ with DAG(
                 name='END',
                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
             k8s.V1EnvVar(
-                name='JOB_COMPLETION_INDEX',
-                value=str(hour)),
+                name='PARTITION_TO_HOUR',
+                value='false'),
             k8s.V1EnvVar(
                 name='ENTITY_TYPES',
-                value='block, transaction, log, token_transfer')
+                value='block, transaction, log')
         ]
 
-        KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.12',
+    KubernetesPodOperator(
+            image='octanlabs/ethereumetl:0.0.13',
             arguments=['export_all'],
             env_vars=env_vars,
-            secrets=default_bsc_indexer_secrets + indexer_aws_secrets,
+            secrets=secrets,
             container_resources=k8s.V1ResourceRequirements(
                 requests={
-                    'memory': '8G',
+                    'memory': '4G',
                 },
             ),
             name='bsc_non_trace_index',
-            task_id='bsc_non_trace_index_{}'.format(hour),
+            task_id='bsc_non_trace_index',
             random_name_suffix=True,
         )
 
