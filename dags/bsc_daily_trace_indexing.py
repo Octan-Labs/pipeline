@@ -27,7 +27,7 @@ with DAG(
     tags=['bsc']
 ) as dag:
 
-    default_bsc_indexer_secrets = [
+    secrets = [
         Secret(
             deploy_type='env',
             deploy_target='PROVIDER_URI',
@@ -39,10 +39,7 @@ with DAG(
             deploy_target='OUTPUT_DIR',
             secret='bsc-indexer-secret',
             key='output-dir'
-        )
-    ]
-
-    indexer_aws_secrets = [
+        ),
         Secret(
             deploy_type='env',
             deploy_target='AWS_ACCESS_KEY_ID',
@@ -57,33 +54,32 @@ with DAG(
         ),
     ]
 
-    for hour in range(24):
-        env_vars = [
-            k8s.V1EnvVar(
-                name='START',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
-            k8s.V1EnvVar(
-                name='END',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
-            k8s.V1EnvVar(
-                name='JOB_COMPLETION_INDEX',
-                value=str(hour)),
-            k8s.V1EnvVar(
-                name='ENTITY_TYPES',
-                value='trace, contract, token')
-        ]
+    env_vars = [
+        k8s.V1EnvVar(
+            name='START',
+            value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(
+            name='END',
+            value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(
+            name='PARTITION_TO_HOUR',
+            value='false'),
+        k8s.V1EnvVar(
+            name='ENTITY_TYPES',
+            value='trace')
+    ]
 
-        KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.12',
-            arguments=['export_all'],
-            env_vars=env_vars,
-            secrets=default_bsc_indexer_secrets + indexer_aws_secrets,
-            container_resources=k8s.V1ResourceRequirements(
-                requests={
-                    'memory': '12G',
-                },
-            ),
-            name='bsc_trace_index',
-            task_id='bsc_trace_index_{}'.format(hour),
-            random_name_suffix=True,
-        )
+    KubernetesPodOperator(
+        image='octanlabs/ethereumetl:0.0.13',
+        arguments=['export_all'],
+        env_vars=env_vars,
+        secrets=secrets,
+        container_resources=k8s.V1ResourceRequirements(
+            requests={
+                'memory': '4G',
+            },
+        ),
+        name='bsc_trace_index',
+        task_id='bsc_trace_index',
+        random_name_suffix=True,
+    )
