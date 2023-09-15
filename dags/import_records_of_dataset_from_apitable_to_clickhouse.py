@@ -1,13 +1,3 @@
-# Example DAG conf to trigger
-# {
-#    "dataset": "dst1336rCCnpEMuVPR", // datasetId  (https://developers.aitable.ai/api/get-records)
-#    "table_name": "apitable_arbitrum_contract", // clickhouse table name
-#    "pageNum": "1", // page of records of dataset
-#    "pageSize": "1000" // page size of records of dataset
-# }
-#
-
-
 import json
 import requests
 from datetime import datetime, timedelta
@@ -34,7 +24,7 @@ def _get_records(endpoint, api_table_token, ti):
     headers={"Authorization": "Bearer {api_table_token}".format(api_table_token = api_table_token)}
     res = requests.get(url = endpoint, headers = headers)
     records = json.loads(res.text)['data']['records']
-    value = ','.join(f"('{e['recordId']}', {e['createdAt']}, {e['updatedAt']}, '{e['fields']['address']}', '{escape_for_sql(e['fields'].get('identity', ''))}', '{escape_for_sql(e['fields'].get('category', ''))}', '{escape_for_sql(e['fields'].get('version', ''))}', {escape_for_sql(e['fields'].get('update', ''))}, '{escape_for_sql(e['fields'].get('explorer_link', {}).get('text', ''))}', '{escape_for_sql(e['fields'].get('explorer_tagname', ''))}', '{escape_for_sql(e['fields'].get('explorer_contractname', ''))}', '{escape_for_sql(e['fields'].get('crawled_oklink', ''))}', '{escape_for_sql(e['fields'].get('note', ''))}', '{escape_for_sql(e['fields'].get('safety', ''))}', '{escape_for_sql(e['fields'].get('assign', ''))}', '{escape_for_sql(e['fields'].get('project_name', [''])[0])}')" for e in records)
+    value = ','.join(f"('{e['fields']['address']}', '{escape_for_sql(e['fields'].get('identity', ''))}', '{escape_for_sql(e['fields'].get('category', ''))}', '{escape_for_sql(e['fields'].get('version', ''))}', '{escape_for_sql(e['fields'].get('safety', ''))}', '{escape_for_sql(e['fields'].get('project_name', [''])[0])}')" for e in records)
     ti.xcom_push(key = 'api_table_records_of_dataset', value=value)
 
 with DAG(
