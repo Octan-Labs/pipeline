@@ -1,3 +1,13 @@
+# Example DAG conf to trigger
+# {
+#    "dataset": "dst1336rCCnpEMuVPR", // datasetId  (https://developers.aitable.ai/api/get-records)
+#    "table_name": "apitable_arbitrum_contract", // clickhouse table name
+#    "pageNum": "1", // page of records of dataset
+#    "pageSize": "1000" // page size of records of dataset
+# }
+#
+
+
 import json
 import requests
 from datetime import datetime, timedelta
@@ -41,11 +51,12 @@ with DAG(
         task_id = 'get_records_of_dataset',
         python_callable= _get_records,
         op_kwargs={
-            'endpoint': "{api_table_base_url}/fusion/v1/datasheets/{dataset}/records?pageNum={pageNum}"
+            'endpoint': "{api_table_base_url}/fusion/v1/datasheets/{dataset}/records?pageNum={pageNum}&pageSize={pageSize}"
                 .format(
                     api_table_base_url = api_table_base_url, 
                     dataset = "{{ dag_run.conf['dataset'] }}",
-                    pageNum = "{{ dag_run.conf['pageNum'] }}"
+                    pageNum = "{{ dag_run.conf['pageNum'] }}",
+                    pageSize = "{{ dag_run.conf['pageSize'] }}"
                 ),
             'api_table_token': api_table_token
         },
