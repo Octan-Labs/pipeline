@@ -1,9 +1,9 @@
 from airflow import DAG
+from airflow.models import Variable
 from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
-from airflow.models import Variable
 from kubernetes.client import models as k8s
 
 default_args = {
@@ -63,18 +63,20 @@ with DAG(
             key='aws_secret_access_key'
         ),
     ]
+    eth_trace = Variable.get('eth_trace_table_name')
 
     KubernetesPodOperator(
         image='octanlabs/ethereumetl:0.0.13',
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
-        container_resources=k8s.V1ResourceRequirements(
-            # requests={
-            #     'memory': '4G',
-            # },
-        ),
+        container_resources=k8s.V1ResourceRequirements(),
         name='eth_trace_index',
         task_id='eth_trace_index',
         random_name_suffix=True,
+    ) >> ClickHouseOperator(
+        task_id='optimize_eth_trace',
+        database='default',
+        sql=(f'OPTIMIZE TABLE {eth_trace} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+        clickhouse_conn_id="clickhouse_conn"
     )

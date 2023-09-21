@@ -1,5 +1,7 @@
 from airflow import DAG
+from airflow.models import Variable
 from airflow.kubernetes.secret import Secret
+from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
 
@@ -55,32 +57,49 @@ with DAG(
     ]
 
     env_vars = [
-            k8s.V1EnvVar(
-                name='START',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
-            k8s.V1EnvVar(
-                name='END',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
-            k8s.V1EnvVar(
-                name='PARTITION_TO_HOUR',
-                value='false'),
-            k8s.V1EnvVar(
-                name='ENTITY_TYPES',
-                value='block, transaction, log')
-        ]
+        k8s.V1EnvVar(
+            name='START',
+            value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(
+            name='END',
+            value="{{ data_interval_start.subtract(days=1) | ds }}"),
+        k8s.V1EnvVar(
+            name='PARTITION_TO_HOUR',
+            value='false'),
+        k8s.V1EnvVar(
+            name='ENTITY_TYPES',
+            value='block, transaction, log')
+    ]
+
+    bsc_block, bsc_transaction, bsc_log = Variable.get('bsc_block_table_name'), Variable.get(
+        'bsc_transaction_table_name'), Variable.get('bsc_log_table_name')
 
     KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.13',
-            arguments=['export_all'],
-            env_vars=env_vars,
-            secrets=secrets,
-            container_resources=k8s.V1ResourceRequirements(
-                # requests={
-                #     'memory': '4G',
-                # },
-            ),
-            name='bsc_non_trace_index',
-            task_id='bsc_non_trace_index',
-            random_name_suffix=True,
+        image='octanlabs/ethereumetl:0.0.13',
+        arguments=['export_all'],
+        env_vars=env_vars,
+        secrets=secrets,
+        container_resources=k8s.V1ResourceRequirements(),
+        name='bsc_non_trace_index',
+        task_id='bsc_non_trace_index',
+        random_name_suffix=True,
+    ) >> [
+        ClickHouseOperator(
+            task_id='optimize_bsc_block',
+            database='default',
+            sql=(f'OPTIMIZE TABLE {bsc_block} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+            clickhouse_conn_id="clickhouse_conn"
+        ),
+        ClickHouseOperator(
+            task_id='optimize_bsc_transaction',
+            database='default',
+            sql=(f'OPTIMIZE TABLE {bsc_transaction} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+            clickhouse_conn_id="clickhouse_conn"
+        ),
+        ClickHouseOperator(
+            task_id='optimize_bsc_log',
+            database='default',
+            sql=(f'OPTIMIZE TABLE {bsc_log} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+            clickhouse_conn_id="clickhouse_conn"
         )
-
+    ]

@@ -1,5 +1,7 @@
 from airflow import DAG
+from airflow.models import Variable
 from airflow.kubernetes.secret import Secret
+from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
 
@@ -54,6 +56,8 @@ with DAG(
         ),
     ]
 
+    bsc_trace = Variable.get('bsc_trace_table_name')
+
     env_vars = [
         k8s.V1EnvVar(
             name='START',
@@ -74,12 +78,13 @@ with DAG(
         arguments=['export_all'],
         env_vars=env_vars,
         secrets=secrets,
-        container_resources=k8s.V1ResourceRequirements(
-            # requests={
-            #     'memory': '4G',
-            # },
-        ),
+        container_resources=k8s.V1ResourceRequirements(),
         name='bsc_trace_index',
         task_id='bsc_trace_index',
         random_name_suffix=True,
+    ) >> ClickHouseOperator(
+        task_id='optimize_bsc_trace',
+        database='default',
+        sql=(f'OPTIMIZE TABLE {bsc_trace} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+        clickhouse_conn_id="clickhouse_conn"
     )

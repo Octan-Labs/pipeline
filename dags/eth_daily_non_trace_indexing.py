@@ -1,10 +1,9 @@
 from airflow import DAG
+from airflow.models import Variable
 from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime, timedelta
-from airflow.models import Variable
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from kubernetes.client import models as k8s
 
 default_args = {
@@ -65,17 +64,35 @@ with DAG(
         ),
     ]
 
+    eth_block, eth_transaction, eth_log = Variable.get('eth_block_table_name'), Variable.get(
+        'eth_transaction_table_name'), Variable.get('eth_log_table_name')
+
     KubernetesPodOperator(
-            image='octanlabs/ethereumetl:0.0.13',
-            arguments=['export_all'],
-            env_vars=env_vars,
-            secrets=secrets,
-            container_resources=k8s.V1ResourceRequirements(
-                # requests={
-                #     'memory': '4G',
-                # },
-            ),
-            name='eth_non_trace_index',
-            task_id='eth_non_trace_index',
-            random_name_suffix=True,
+        image='octanlabs/ethereumetl:0.0.13',
+        arguments=['export_all'],
+        env_vars=env_vars,
+        secrets=secrets,
+        container_resources=k8s.V1ResourceRequirements(),
+        name='eth_non_trace_index',
+        task_id='eth_non_trace_index',
+        random_name_suffix=True,
+    ) >> [
+        ClickHouseOperator(
+            task_id='optimize_eth_block',
+            database='default',
+            sql=(f'OPTIMIZE TABLE {eth_block} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+            clickhouse_conn_id="clickhouse_conn"
+        ),
+        ClickHouseOperator(
+            task_id='optimize_eth_transaction',
+            database='default',
+            sql=(f'OPTIMIZE TABLE {eth_transaction} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+            clickhouse_conn_id="clickhouse_conn"
+        ),
+        ClickHouseOperator(
+            task_id='optimize_eth_log',
+            database='default',
+            sql=(f'OPTIMIZE TABLE {eth_log} FINAL DEDUPLICATE SETTINGS alter_sync = 0, optimize_skip_merged_partitions = 1'),
+            clickhouse_conn_id="clickhouse_conn"
         )
+    ]
