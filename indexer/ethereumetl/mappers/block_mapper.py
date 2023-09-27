@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 
-from ethereumetl.domain.block import EthBlock
-from ethereumetl.mappers.transaction_mapper import EthTransactionMapper
+from ethereumetl.domain.block import EthBlock, StarkBlock
+from ethereumetl.mappers.transaction_mapper import EthTransactionMapper, StarkTransactionMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 import pyarrow as pa
 from decimal import Decimal
@@ -113,3 +113,68 @@ class EthBlockMapper(object):
             pa.field('transaction_count', pa.decimal128(precision=38, scale=0), nullable=False),
             pa.field('base_fee_per_gas', pa.decimal128(precision=38, scale=0))
         ])
+
+class StarkBlockMapper(object):
+    def __init__(self, transaction_mapper=None):
+        if transaction_mapper is None:
+            self.transaction_mapper = StarkTransactionMapper()
+        else:
+            self.transaction_mapper = transaction_mapper
+
+    def json_dict_to_block(self, json_dict):
+        block = StarkBlock()
+        block.block_number = json_dict.get('block_number')
+        block.block_hash = json_dict.get('block_hash')
+        block.parent_hash = json_dict.get('parent_hash')
+        block.timestamp = json_dict.get('timestamp')
+        block.new_root = json_dict.get('new_root')
+        block.sequencer_address = json_dict.get('sequencer_address')
+        block.status = json_dict.get('status')
+
+        if 'transactions' in json_dict:
+            block.transactions = [
+                self.transaction_mapper.json_dict_to_transaction(tx, block_timestamp=block.timestamp)
+                for tx in json_dict['transactions']
+                if isinstance(tx, dict)
+            ]
+
+            block.transaction_count = len(json_dict['transactions'])
+
+        return block
+
+    def block_to_dict(self, block):
+        return {
+            'type': 'block',
+            'number': block.block_number,
+            'hash': block.block_hash,
+            'parent_hash': block.parent_hash,
+            'timestamp': block.timestamp,
+            'new_root': block.new_root,
+            'status': block.status,
+            'sequencer_address': block.sequencer_address,
+            'transaction_count': block.transaction_count,
+        }
+
+    # @classmethod
+    # def schema(cls):
+    #     return pa.schema([
+    #         pa.field('number', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('hash', pa.string(), nullable=False),
+    #         pa.field('parent_hash', pa.string()),
+    #         pa.field('nonce', pa.string(), nullable=False),
+    #         pa.field('sha3_uncles', pa.string()),
+    #         pa.field('logs_bloom', pa.string()),
+    #         pa.field('transactions_root', pa.string()),
+    #         pa.field('state_root', pa.string()),
+    #         pa.field('receipts_root', pa.string()),
+    #         pa.field('miner', pa.string()),
+    #         pa.field('difficulty', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('total_difficulty', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('size', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('extra_data', pa.string()),
+    #         pa.field('gas_limit', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('gas_used', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('timestamp', pa.timestamp('s', tz='UTC')),
+    #         pa.field('transaction_count', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('base_fee_per_gas', pa.decimal128(precision=38, scale=0))
+    #     ])

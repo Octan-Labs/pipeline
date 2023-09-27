@@ -31,3 +31,11 @@ class EthReceiptLog(object):
         self.address = None
         self.data = None
         self.topics = []
+
+
+class StarkReceiptLog(object):
+    def __init__(self):
+        self.transaction_hash = None
+        self.from_address = None
+        self.keys = None
+        self.data = None

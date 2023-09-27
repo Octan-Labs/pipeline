@@ -1,7 +1,7 @@
-START=2020-08-30
-END=2023-07-05
+START=268015
+END=268015
 MAX_WORKERS=10
-PROVIDER_URI=https://bsc-dataseed.binance.org
+PROVIDER_URI=https://starknet-mainnet.public.blastapi.io
 OUTPUT_DIR=s3://bsc-archive
 FSSPEC_S3_ENDPOINT_URL=https://play.min.io:9000
 FSSPEC_CACHE_REGIONS=true

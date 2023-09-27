@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 
-from ethereumetl.domain.transaction import EthTransaction
+from ethereumetl.domain.transaction import EthTransaction, StarkTransaction
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 import pyarrow as pa
 import decimal
@@ -91,3 +91,58 @@ class EthTransactionMapper(object):
             pa.field('receipt_status', pa.decimal128(precision=38, scale=0)),
             pa.field('receipt_effective_gas_price', pa.decimal128(precision=38, scale=0))
         ])
+    
+
+class StarkTransactionMapper(object):
+    def json_dict_to_transaction(self, json_dict, **kwargs):
+        transaction = StarkTransaction()
+        transaction.type = json_dict.get('type')
+        transaction.hash = json_dict.get('transaction_hash')
+        transaction.version = json_dict.get('version')
+        transaction.max_fee = json_dict.get('max_fee')
+        transaction.signature = json_dict.get('signature')
+        transaction.nonce = json_dict.get('nonce')
+        transaction.sender_address = json_dict.get('sender_address')
+        transaction.calldata = json_dict.get('calldata')
+        transaction.block_timestamp = kwargs.get('block_timestamp')
+        return transaction
+
+    def transaction_to_dict(self, transaction):
+        return {
+            'type': 'transaction',
+            'transaction_type': transaction.type,
+            'hash': transaction.hash,
+            'version': transaction.version,
+            'max_fee': transaction.max_fee,
+            'signature': transaction.signature,
+            'nonce': transaction.nonce,
+            'sender_address': transaction.sender_address,
+            'calldata': transaction.calldata,
+            'block_timestamp': transaction.block_timestamp,
+        }
+
+    # @classmethod
+    # def schema(cls):
+    #     return pa.schema([
+    #         pa.field('hash', pa.string(), nullable=False),
+    #         pa.field('nonce', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('transaction_index', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('from_address', pa.string(), nullable=False),
+    #         pa.field('to_address', pa.string()),
+    #         pa.field('value', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('gas', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('gas_price', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('input', pa.string()),
+    #         pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+    #         pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('block_hash', pa.string(), nullable=False),
+    #         pa.field('max_fee_per_gas', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('max_priority_fee_per_gas', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('transaction_type', pa.uint8()),
+    #         pa.field('receipt_cumulative_gas_used', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('receipt_gas_used', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('receipt_contract_address', pa.string()),
+    #         pa.field('receipt_root', pa.string()),
+    #         pa.field('receipt_status', pa.decimal128(precision=38, scale=0)),
+    #         pa.field('receipt_effective_gas_price', pa.decimal128(precision=38, scale=0))
+    #     ])

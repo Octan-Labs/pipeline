@@ -37,3 +37,15 @@ class EthTransaction(object):
         self.max_fee_per_gas = None
         self.max_priority_fee_per_gas = None
         self.transaction_type = None
+
+class StarkTransaction(object):
+    def __init__(self):
+        self.type = None
+        self.hash = None
+        self.version = None
+        self.max_fee = None
+        self.signature = None
+        self.nonce = None
+        self.sender_address = None
+        self.calldata = None
+        self.block_timestamp = None

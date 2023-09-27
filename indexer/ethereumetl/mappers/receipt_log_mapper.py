@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 
-from ethereumetl.domain.receipt_log import EthReceiptLog
+from ethereumetl.domain.receipt_log import EthReceiptLog, StarkReceiptLog
 from ethereumetl.utils import hex_to_dec
 import pyarrow as pa
 
@@ -114,3 +114,39 @@ class EthReceiptLogMapper(object):
             pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
             pa.field('block_hash', pa.string(), nullable=False),
         ])
+    
+
+class StarkReceiptLogMapper(object):
+
+    def json_dict_to_receipt_log(self, json_dict, **kwargs):
+        receipt_log = StarkReceiptLog()
+
+        receipt_log.transaction_hash = kwargs.get('transaction_hash')
+        receipt_log.data = json_dict.get('data')
+        receipt_log.keys = json_dict.get('keys')
+        receipt_log.from_address = json_dict.get('from_address')
+
+        return receipt_log
+
+    def receipt_log_to_dict(self, receipt_log):
+        return {
+            'type': 'log',
+            'transaction_hash': receipt_log.transaction_hash,
+            'data': receipt_log.data,
+            'keys': receipt_log.keys,
+            'from_address': receipt_log.from_address,
+        }
+
+    # @classmethod
+    # def schema(cls):
+    #     return pa.schema([
+    #         pa.field('log_index', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('transaction_hash', pa.string(), nullable=False),
+    #         pa.field('transaction_index', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('address', pa.string()),
+    #         pa.field('data', pa.string()),
+    #         pa.field('topics', pa.list_(pa.string())),
+    #         pa.field('block_number', pa.decimal128(precision=38, scale=0), nullable=False),
+    #         pa.field('block_timestamp', pa.timestamp('s', tz='UTC'), nullable=False),
+    #         pa.field('block_hash', pa.string(), nullable=False),
+    #     ])

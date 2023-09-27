@@ -44,3 +44,16 @@ class EthBlock(object):
         self.transactions = []
         self.transaction_count = 0
         self.base_fee_per_gas = 0
+
+class StarkBlock(object):
+    def __init__(self):
+        self.status = None
+        self.block_hash = None
+        self.parent_hash = None
+        self.block_number = None
+        self.new_root = None
+        self.timestamp = None
+        self.sequencer_address = None
+
+        self.transactions = []
+        self.transaction_count = 0

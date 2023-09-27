@@ -34,3 +34,13 @@ class EthReceipt(object):
         self.root = None
         self.status = None
         self.effective_gas_price = None
+
+
+class StarkReceipt(object):
+    def __init__(self) -> None:
+        self.type = None
+        self.transaction_hash = None
+        self.actual_fee = None
+        self.block_hash = None
+        self.block_number = None
+        self.events = []

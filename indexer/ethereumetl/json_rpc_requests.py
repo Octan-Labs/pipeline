@@ -24,8 +24,8 @@
 def generate_get_block_by_number_json_rpc(block_numbers, include_transactions):
     for idx, block_number in enumerate(block_numbers):
         yield generate_json_rpc(
-            method='eth_getBlockByNumber',
-            params=[hex(block_number), include_transactions],
+            method='starknet_getBlockWithTxs',
+            params=[{"block_number": block_number}],
             request_id=idx
         )
 
@@ -43,7 +43,7 @@ def generate_trace_block_by_number_json_rpc(block_numbers):
 def generate_get_receipt_json_rpc(transaction_hashes):
     for idx, transaction_hash in enumerate(transaction_hashes):
         yield generate_json_rpc(
-            method='eth_getTransactionReceipt',
+            method='starknet_getTransactionReceipt',
             params=[transaction_hash],
             request_id=idx
         )

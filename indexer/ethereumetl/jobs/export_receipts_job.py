@@ -26,8 +26,8 @@ import json
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_get_receipt_json_rpc
-from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
-from ethereumetl.mappers.receipt_mapper import EthReceiptMapper
+from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper, StarkReceiptLogMapper
+from ethereumetl.mappers.receipt_mapper import EthReceiptMapper, StarkReceiptMapper
 from ethereumetl.utils import rpc_response_batch_to_results
 
 
@@ -53,8 +53,8 @@ class ExportReceiptsJob(BaseJob):
         if not self.export_receipts and not self.export_logs:
             raise ValueError('At least one of export_receipts or export_logs must be True')
 
-        self.receipt_mapper = EthReceiptMapper()
-        self.receipt_log_mapper = EthReceiptLogMapper()
+        self.receipt_mapper = StarkReceiptMapper()
+        self.receipt_log_mapper = StarkReceiptLogMapper()
 
     def _start(self):
         self.item_exporter.open()
@@ -74,8 +74,8 @@ class ExportReceiptsJob(BaseJob):
         if self.export_receipts:
             self.item_exporter.export_item(self.receipt_mapper.receipt_to_dict(receipt))
         if self.export_logs:
-            for log in receipt.logs:
-                self.item_exporter.export_item(self.receipt_log_mapper.receipt_log_to_dict(log))
+            for event in receipt.events:
+                self.item_exporter.export_item(self.receipt_log_mapper.receipt_log_to_dict(event))
 
     def _end(self):
         self.batch_work_executor.shutdown()

@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 
-from ethereumetl.domain.receipt import EthReceipt
-from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
+from ethereumetl.domain.receipt import EthReceipt, StarkReceipt
+from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper, StarkReceiptLogMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
@@ -70,4 +70,38 @@ class EthReceiptMapper(object):
             'root': receipt.root,
             'status': receipt.status,
             'effective_gas_price': receipt.effective_gas_price
+        }
+    
+
+class StarkReceiptMapper(object):
+    def __init__(self, receipt_log_mapper=None):
+        if receipt_log_mapper is None:
+            self.receipt_log_mapper = StarkReceiptLogMapper()
+        else:
+            self.receipt_log_mapper = receipt_log_mapper
+
+    def json_dict_to_receipt(self, json_dict):
+        receipt = StarkReceipt()
+
+        receipt.type = json_dict.get('type')
+        receipt.transaction_hash = json_dict.get('transaction_hash')
+        receipt.actual_fee = json_dict.get('actual_fee')
+        receipt.block_hash = json_dict.get('block_hash')
+        receipt.block_number = json_dict.get('block_number')
+
+        if 'events' in json_dict:
+            receipt.events = [
+                self.receipt_log_mapper.json_dict_to_receipt_log(event, transaction_hash=receipt.transaction_hash) for event in json_dict['events']
+            ]
+
+        return receipt
+
+    def receipt_to_dict(self, receipt):
+        return {
+            'type': 'receipt',
+            'transacion_type': receipt.type,
+            'transaction_hash': receipt.transaction_hash,
+            'actual_fee': receipt.actual_fee,
+            'block_hash': receipt.block_hash,
+            'block_number': receipt.block_number,
         }
