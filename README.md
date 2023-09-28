@@ -1,9 +1,10 @@
 # **Pipeline for Octan Network**
 ---------------------------------
 
+![architecture](docs/architecture.png)
+
 Support cloud native deployment (kubernetes) with autoscaler
 Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
-
 # Features
 
 - evm indexer: `./indexer`
