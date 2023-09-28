@@ -62,29 +62,18 @@ def enrich_transactions(transactions, receipts):
         transactions, receipts, ('hash', 'transaction_hash'),
         left_fields=[
             'type',
+            'transaction_type',
             'hash',
+            'version',
+            'max_fee',
+            'signature',
             'nonce',
-            'transaction_index',
-            'from_address',
-            'to_address',
-            'value',
-            'gas',
-            'gas_price',
-            'input',
+            'sender_address',
+            'calldata',
             'block_timestamp',
-            'block_number',
-            'block_hash',
-            'max_fee_per_gas',
-            'max_priority_fee_per_gas',
-            'transaction_type'
         ],
         right_fields=[
-            ('cumulative_gas_used', 'receipt_cumulative_gas_used'),
-            ('gas_used', 'receipt_gas_used'),
-            ('contract_address', 'receipt_contract_address'),
-            ('root', 'receipt_root'),
-            ('status', 'receipt_status'),
-            ('effective_gas_price', 'receipt_effective_gas_price')
+            ('actual_fee', 'actual_fee'),
         ]))
 
     if len(result) != len(transactions):
@@ -98,13 +87,12 @@ def enrich_logs(blocks, logs):
         logs, blocks, ('block_number', 'number'),
         [
             'type',
-            'log_index',
+            'block_number',
             'transaction_hash',
-            'transaction_index',
-            'address',
+            'log_index',
             'data',
-            'topics',
-            'block_number'
+            'keys',
+            'from_address',
         ],
         [
             ('timestamp', 'block_timestamp'),

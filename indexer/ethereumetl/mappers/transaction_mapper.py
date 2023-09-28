@@ -99,7 +99,7 @@ class StarkTransactionMapper(object):
         transaction.type = json_dict.get('type')
         transaction.hash = json_dict.get('transaction_hash')
         transaction.version = json_dict.get('version')
-        transaction.max_fee = json_dict.get('max_fee')
+        transaction.max_fee = hex_to_dec(json_dict.get('max_fee'))
         transaction.signature = json_dict.get('signature')
         transaction.nonce = json_dict.get('nonce')
         transaction.sender_address = json_dict.get('sender_address')
@@ -114,10 +114,10 @@ class StarkTransactionMapper(object):
             'hash': transaction.hash,
             'version': transaction.version,
             'max_fee': transaction.max_fee,
-            'signature': transaction.signature,
+            'signature': transaction.signature if transaction.signature is not None else [],
             'nonce': transaction.nonce,
             'sender_address': transaction.sender_address,
-            'calldata': transaction.calldata,
+            'calldata': transaction.calldata if transaction.calldata is not None else [],
             'block_timestamp': transaction.block_timestamp,
         }
 

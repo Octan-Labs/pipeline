@@ -35,7 +35,9 @@ class EthReceiptLog(object):
 
 class StarkReceiptLog(object):
     def __init__(self):
+        self.block_number = None
         self.transaction_hash = None
+        self.log_index = None
         self.from_address = None
         self.keys = None
         self.data = None

@@ -62,7 +62,8 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
                 'contract': 'contract',
                 'token': 'token',
             },
-            converters=[DecimalToIntItemConverter()])
+            # converters=[DecimalToIntItemConverter()]
+            )
             streamer_adapter = EthStreamerAdapter(
                 batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
                 item_exporter=item_exporter,
@@ -143,7 +144,8 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
                 batch_size=batch_size,
                 item_exporter=FsspecItemExporter(
                     filename_without_ext_mapping=filename_without_ext_mapping,
-                    mapper_mapping=mapper_mapping
+                    mapper_mapping=mapper_mapping,
+                    file_format='csv'
                 ),
                 max_workers=max_workers,
                 entity_types=tuple(entity_types),

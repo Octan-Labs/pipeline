@@ -121,7 +121,9 @@ class StarkReceiptLogMapper(object):
     def json_dict_to_receipt_log(self, json_dict, **kwargs):
         receipt_log = StarkReceiptLog()
 
+        receipt_log.block_number = kwargs.get('block_number')
         receipt_log.transaction_hash = kwargs.get('transaction_hash')
+        receipt_log.log_index = kwargs.get('log_index')
         receipt_log.data = json_dict.get('data')
         receipt_log.keys = json_dict.get('keys')
         receipt_log.from_address = json_dict.get('from_address')
@@ -131,6 +133,7 @@ class StarkReceiptLogMapper(object):
     def receipt_log_to_dict(self, receipt_log):
         return {
             'type': 'log',
+            'block_number': receipt_log.block_number,
             'transaction_hash': receipt_log.transaction_hash,
             'data': receipt_log.data,
             'keys': receipt_log.keys,

@@ -1,8 +1,9 @@
-START=268015
-END=268015
+START=268724
+END=268725
 MAX_WORKERS=10
+ENTITY_TYPES=block,transaction,log
 PROVIDER_URI=https://starknet-mainnet.public.blastapi.io
-OUTPUT_DIR=s3://bsc-archive
+OUTPUT_DIR=clickhouse://127.0.0.1:8123?table_prefix=stark
 FSSPEC_S3_ENDPOINT_URL=https://play.min.io:9000
 FSSPEC_CACHE_REGIONS=true
 AWS_REGION=us-east-1

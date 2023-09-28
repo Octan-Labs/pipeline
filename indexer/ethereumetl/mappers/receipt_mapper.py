@@ -91,7 +91,7 @@ class StarkReceiptMapper(object):
 
         if 'events' in json_dict:
             receipt.events = [
-                self.receipt_log_mapper.json_dict_to_receipt_log(event, transaction_hash=receipt.transaction_hash) for event in json_dict['events']
+                self.receipt_log_mapper.json_dict_to_receipt_log(event, transaction_hash=receipt.transaction_hash, block_number=receipt.block_number, log_index=idx) for (idx, event) in json_dict['events']
             ]
 
         return receipt

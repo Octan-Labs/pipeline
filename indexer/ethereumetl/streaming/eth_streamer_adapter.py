@@ -54,71 +54,71 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.RECEIPT) or self._should_export(EntityType.LOG):
             receipts, logs = self._export_receipts_and_logs(transactions)
 
-        enriched_transactions = enrich_transactions(transactions, receipts) \
+        enriched_transactions = transactions \
             if EntityType.TRANSACTION in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_transactions, ('block_number', 'transaction_index')))
+        self._calculate_offset_and_export(sort_by(enriched_transactions, ('block_timestamp')))
         del enriched_transactions
         del transactions
         del receipts
         gc.collect()
 
         # Extract token transfers
-        token_transfers = []
-        if self._should_export(EntityType.TOKEN_TRANSFER):
-            token_transfers = self._extract_token_transfers(logs)
+        # token_transfers = []
+        # if self._should_export(EntityType.TOKEN_TRANSFER):
+        #     token_transfers = self._extract_token_transfers(logs)
 
-        enriched_logs = enrich_logs(blocks, logs) \
+        enriched_logs = logs \
             if EntityType.LOG in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_logs, ('block_number', 'log_index')))
+        self._calculate_offset_and_export(sort_by(enriched_logs, ('transaction_hash')))
         del enriched_logs
         del logs
         gc.collect()
         
-        enriched_token_transfers = enrich_token_transfers(blocks, token_transfers) \
-            if EntityType.TOKEN_TRANSFER in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_token_transfers, ('block_number', 'log_index')))
-        del enriched_token_transfers
-        del token_transfers
-        gc.collect()
+        # enriched_token_transfers = enrich_token_transfers(blocks, token_transfers) \
+        #     if EntityType.TOKEN_TRANSFER in self.entity_types else []
+        # self._calculate_offset_and_export(sort_by(enriched_token_transfers, ('block_number', 'log_index')))
+        # del enriched_token_transfers
+        # del token_transfers
+        # gc.collect()
 
         # Export traces
-        traces = []
-        if self._should_export(EntityType.TRACE):
-            traces = self._export_traces(start_block, end_block)
+        # traces = []
+        # if self._should_export(EntityType.TRACE):
+        #     traces = self._export_traces(start_block, end_block)
 
         # Export contracts
-        contracts = []
-        if self._should_export(EntityType.CONTRACT):
-            contracts = self._export_contracts(traces)
+        # contracts = []
+        # if self._should_export(EntityType.CONTRACT):
+        #     contracts = self._export_contracts(traces)
 
-        enriched_traces = enrich_traces(blocks, traces) \
-            if EntityType.TRACE in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_traces, ('block_number', 'trace_index')))
-        del enriched_traces
-        del traces
-        gc.collect()
+        # enriched_traces = enrich_traces(blocks, traces) \
+        #     if EntityType.TRACE in self.entity_types else []
+        # self._calculate_offset_and_export(sort_by(enriched_traces, ('block_number', 'trace_index')))
+        # del enriched_traces
+        # del traces
+        # gc.collect()
 
-        enriched_contracts = enrich_contracts(blocks, contracts) \
-            if EntityType.CONTRACT in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_contracts, ('block_number',)))
-        del enriched_contracts
-        gc.collect()
+        # enriched_contracts = enrich_contracts(blocks, contracts) \
+        #     if EntityType.CONTRACT in self.entity_types else []
+        # self._calculate_offset_and_export(sort_by(enriched_contracts, ('block_number',)))
+        # del enriched_contracts
+        # gc.collect()
 
         # Export tokens
-        tokens = []
-        if self._should_export(EntityType.TOKEN):
-            tokens = self._extract_tokens(contracts)       
-        enriched_tokens = enrich_tokens(blocks, tokens) \
-            if EntityType.TOKEN in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_tokens, ('block_number',)))
-        del enriched_tokens
-        del tokens
-        del contracts
-        gc.collect()
+        # tokens = []
+        # if self._should_export(EntityType.TOKEN):
+        #     tokens = self._extract_tokens(contracts)       
+        # enriched_tokens = enrich_tokens(blocks, tokens) \
+        #     if EntityType.TOKEN in self.entity_types else []
+        # self._calculate_offset_and_export(sort_by(enriched_tokens, ('block_number',)))
+        # del enriched_tokens
+        # del tokens
+        # del contracts
+        # gc.collect()
 
         enriched_blocks = blocks \
             if EntityType.BLOCK in self.entity_types else []
-        self._calculate_offset_and_export(sort_by(enriched_blocks, 'number'))
+        self._calculate_offset_and_export(sort_by(enriched_blocks, 'block_number'))
         del enriched_blocks
         del blocks
         gc.collect()
