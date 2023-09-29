@@ -74,6 +74,7 @@ def enrich_transactions(transactions, receipts):
         ],
         right_fields=[
             ('actual_fee', 'actual_fee'),
+            ('block_number', 'block_number')
         ]))
 
     if len(result) != len(transactions):
@@ -89,14 +90,14 @@ def enrich_logs(blocks, logs):
             'type',
             'block_number',
             'transaction_hash',
-            'log_index',
+            'event_index',
             'data',
             'keys',
             'from_address',
         ],
         [
             ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
+            # ('hash', 'block_hash'),
         ]))
 
     if len(result) != len(logs):

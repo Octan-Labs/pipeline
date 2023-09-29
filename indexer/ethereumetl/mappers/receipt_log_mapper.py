@@ -135,6 +135,7 @@ class StarkReceiptLogMapper(object):
             'type': 'log',
             'block_number': receipt_log.block_number,
             'transaction_hash': receipt_log.transaction_hash,
+            'event_index': receipt_log.log_index,
             'data': receipt_log.data,
             'keys': receipt_log.keys,
             'from_address': receipt_log.from_address,

@@ -54,7 +54,7 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.RECEIPT) or self._should_export(EntityType.LOG):
             receipts, logs = self._export_receipts_and_logs(transactions)
 
-        enriched_transactions = transactions \
+        enriched_transactions = enrich_transactions(transactions, receipts) \
             if EntityType.TRANSACTION in self.entity_types else []
         self._calculate_offset_and_export(sort_by(enriched_transactions, ('block_timestamp')))
         del enriched_transactions
@@ -67,7 +67,7 @@ class EthStreamerAdapter:
         # if self._should_export(EntityType.TOKEN_TRANSFER):
         #     token_transfers = self._extract_token_transfers(logs)
 
-        enriched_logs = logs \
+        enriched_logs = enrich_logs(blocks, logs) \
             if EntityType.LOG in self.entity_types else []
         self._calculate_offset_and_export(sort_by(enriched_logs, ('transaction_hash')))
         del enriched_logs
