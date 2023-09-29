@@ -25,8 +25,7 @@ with DAG(
     schedule="@daily",
     catchup=False,
     tags=['arb'],
-    concurrency=1,
-    max_active_run=1
+    max_active_runs=1
 ) as dag:
 
     secrets = [
