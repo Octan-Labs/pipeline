@@ -8,8 +8,6 @@ from kubernetes.client import models as k8s
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2021, 5, 29),
-    "concurrency": 1,
-    'max_active_runs': 1,
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
@@ -26,7 +24,9 @@ with DAG(
     description='Run arb indexer daily',
     schedule="@daily",
     catchup=False,
-    tags=['arb']
+    tags=['arb'],
+    concurrency=1,
+    max_active_run=1
 ) as dag:
 
     secrets = [
