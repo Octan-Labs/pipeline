@@ -103,11 +103,11 @@ const main = async () => {
   );
   const CONTRACT_FUNCTION = "balanceOf";
   const contracts: Contract[] = [];
-  const callInputs: any[] = [];
+  const callInputs: string[][] = [];
 
-  projectContractTokens.forEach((obj) => {
-    contracts.push(new Contract(obj.token_address, erc20ABI, rpcProvider));
-    callInputs.push([obj.address]);
+  projectContractTokens.forEach((ctr) => {
+    contracts.push(new Contract(ctr.token_address, erc20ABI, rpcProvider));
+    callInputs.push([ctr.address]);
   });
 
   let tx = await getMultipleContractMultipleData(
