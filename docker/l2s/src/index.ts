@@ -16,7 +16,6 @@ const main = async () => {
   const config = getConfig();
 
   // Initialize repository
-  const ethLastBlockPerDayRepo = new EthLastBlockPerDayRepo();
   const ethProjectAddressTokenAddressRepo =
     new EthProjectAddressTokenAddressRepo();
   const ethTokenRepo = new EthTokenRepo();
@@ -33,11 +32,6 @@ const main = async () => {
   const CONTRACT_FUNCTION = "balanceOf";
   const contracts: Contract[] = [];
   const callInputs: any[] = [];
-
-  // Get last block by date, config in .env
-  const blockDate = await ethLastBlockPerDayRepo.getByDate(
-    config.calculateDate
-  );
 
   // Get contracts and tokens of all projects
   const projectContracts = await ethProjectAddressTokenAddressRepo.getAll();
@@ -64,7 +58,7 @@ const main = async () => {
     contracts,
     multicallContract,
     CONTRACT_FUNCTION,
-    blockDate[0].block_number,
+    config.blockNumber,
     callInputs
   );
 
@@ -81,8 +75,8 @@ const main = async () => {
       decimal ?? 18
     );
     return {
-      project_id: "base",
-      date: new Date(config.calculateDate),
+      project_id: projectContracts[i].project_id,
+      date: new Date(), // TODO: calculate date
       address: projectContracts[i].address,
       token_address: projectContracts[i].token_address,
       balance: +balanceFormatted,

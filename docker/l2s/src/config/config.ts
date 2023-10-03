@@ -3,7 +3,7 @@ import { config as dotenvConfig } from "dotenv";
 export interface Config {
   readonly rpcUrl: string;
   readonly multicallContractAddress: string;
-  readonly calculateDate: string;
+  readonly blockNumber: number;
   readonly dbHost: string;
   readonly dbPort: number;
   readonly dbUser: string;
@@ -19,7 +19,7 @@ export function getConfig(): Config {
       "MULTICALL_CONTRACT_ADDRESS",
       "0xeefba1e63905ef1d7acba5a8513c70307c1ce441"
     ),
-    calculateDate: getEnv("CALCULATE_DATE", "2022-01-01"),
+    blockNumber: +getEnv("BLOCK_NUMBER", "18045129"),
     dbHost: getEnv("POSTGRES_HOST", "localhost"),
     dbPort: +getEnv("POSTGRES_PORT", "5432"),
     dbUser: getEnv("POSTGRES_USER", "postgres"),
