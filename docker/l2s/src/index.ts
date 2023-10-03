@@ -15,10 +15,11 @@ import EthProjectTokenBalanceTimeseries, {
 } from "./model/EthProjectTokenBalanceTimeseries";
 import { createClient } from "@clickhouse/client";
 
-type Token = {
-  address: string;
+type TokenPrice = {
   id: number;
-  symbol: string;
+  timestamp: Date;
+  price: number;
+  address: string;
   decimals: number;
 };
 
@@ -62,36 +63,41 @@ const main = async () => {
     throw new Error("Block not found");
   }
 
-  const blockDate = new Date(blockTime[0].timestamp);
-
   // Query token addresses data from clickhouse
-  const query = `SELECT eth as address, id, symbol, decimals 
-                  FROM cmc_address 
-                  JOIN eth_token et on cmc_address.eth = et.address
-                  WHERE cmc_address.eth IN ({addresses: Array(TINYTEXT)})
-                  UNION ALL (
-                    SELECT 'native_token' as address, id, symbol, 18 as decimals
-                    FROM cmc_address
-                    WHERE id = 1027
-                  )`;
+  const query = `SELECT h.id as id, h.timestamp as timestamp, close as price,
+                  a.eth as address, t.decimals as decimals
+                  FROM cmc_historical h
+                  JOIN cmc_address a ON h.id = a.id
+                  JOIN cmc_eth_token t on t.address = a.eth
+                  WHERE a.eth IN ({addresses: Array(TINYTEXT)})
+                  AND toDate(h.timestamp) =toDate({timestamp: timestamp})
+                  LIMIT 1000`;
 
   const result = await client.query({
     query: query,
     query_params: {
       addresses: tokenAddresses,
+      timestamp: blockTime[0].timestamp,
     },
     format: "JSONEachRow",
   });
-  const tokens: Token[] = await result.json();
 
-  const decimalMap = tokens.reduce((acc, obj) => {
+  const tokenPrices: TokenPrice[] = await result.json();
+
+  const decimalMap = tokenPrices.reduce((acc, obj) => {
     acc[obj.address] = obj.decimals;
+    return acc;
+  }, {});
+
+  const priceMap = tokenPrices.reduce((acc, obj) => {
+    acc[obj.address] = obj.price;
     return acc;
   }, {});
 
   const projectContractTokens: any[] = projectContracts.map((obj) => ({
     ...obj,
     decimal: decimalMap[obj.token_address.toLowerCase()],
+    price: priceMap[obj.token_address.toLowerCase()],
   }));
 
   //  Initialize provider
@@ -123,10 +129,11 @@ const main = async () => {
     if (balance === undefined) {
       return {
         project_id: projectContracts[i].project_id,
-        date: blockDate,
+        date: new Date(blockTime[0].timestamp),
         address: projectContracts[i].address,
         token_address: projectContracts[i].token_address,
         balance: 0,
+        price: 0,
       };
     }
     const balanceFormatted = ethers.formatUnits(
@@ -135,10 +142,11 @@ const main = async () => {
     );
     return {
       project_id: projectContracts[i].project_id,
-      date: blockDate,
+      date: new Date(blockTime[0].timestamp),
       address: projectContracts[i].address,
       token_address: projectContracts[i].token_address,
       balance: +balanceFormatted,
+      price: priceMap[projectContracts[i].token_address] ?? 0,
     };
   });
 

@@ -7,6 +7,7 @@ export default class EthProjectTokenBalanceTimeseries {
   address: string;
   token_address: string;
   balance: number;
+  price: number;
 }
 
 interface IEthProjectTokenBalanceTimeseriesRepo {
@@ -27,9 +28,10 @@ export class EthProjectTokenBalanceTimeseriesRepo
       obj.address,
       obj.token_address,
       obj.balance,
+      obj.price,
     ]);
     const query = pgFormat(
-      "INSERT INTO eth_project_token_balance_timeseries(project_id, date, address, token_address, balance) VALUES %L RETURNING *",
+      "INSERT INTO eth_project_token_balance_timeseries(project_id, date, address, token_address, balance, price) VALUES %L RETURNING *",
       values
     );
     const { rows } = await pool.query(query);
