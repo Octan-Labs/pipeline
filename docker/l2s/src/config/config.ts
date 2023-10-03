@@ -4,6 +4,10 @@ export interface Config {
   readonly rpcUrl: string;
   readonly multicallContractAddress: string;
   readonly blockNumber: number;
+  readonly chHost: string;
+  readonly chDatabase: string;
+  readonly chUser: string;
+  readonly chPassword: string;
   readonly dbHost: string;
   readonly dbPort: number;
   readonly dbUser: string;
@@ -19,12 +23,16 @@ export function getConfig(): Config {
       "MULTICALL_CONTRACT_ADDRESS",
       "0xeefba1e63905ef1d7acba5a8513c70307c1ce441"
     ),
-    blockNumber: +getEnv("BLOCK_NUMBER", "18045129"),
+    blockNumber: +getEnv("BLOCK_NUMBER", ""),
+    chHost: getEnv("CLICKHOUSE_HOST", ""),
+    chDatabase: getEnv("CLICKHOUSE_DATABASE", ""),
+    chUser: getEnv("CLICKHOUSE_USER", "default"),
+    chPassword: getEnv("CLICKHOUSE_PASSWORD", ""),
     dbHost: getEnv("POSTGRES_HOST", "localhost"),
     dbPort: +getEnv("POSTGRES_PORT", "5432"),
     dbUser: getEnv("POSTGRES_USER", "postgres"),
     dbPassword: getEnv("POSTGRES_PASSWORD", "postgres"),
-    dbDatabase: getEnv("POSTGRES_DB", "l2s"),
+    dbDatabase: getEnv("POSTGRES_DATABASE", ""),
   };
 }
 

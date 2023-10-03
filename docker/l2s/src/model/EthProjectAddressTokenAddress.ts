@@ -1,6 +1,6 @@
-import pool from "../database/db";
+import pool from "../database/posgres";
 
-interface EthProjectAddressTokenAddress {
+export interface EthProjectAddressTokenAddress {
   project_id: string;
   project_name: string;
   address: string;

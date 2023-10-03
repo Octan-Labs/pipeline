@@ -1,4 +1,4 @@
-import pool from "../database/db";
+import pool from "../database/posgres";
 const pgFormat = require("pg-format");
 
 export default class EthProjectTokenBalanceTimeseries {
