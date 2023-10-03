@@ -22,6 +22,11 @@ type Token = {
   decimals: number;
 };
 
+type BlockTime = {
+  number: number;
+  timestamp: Date;
+};
+
 const main = async () => {
   const config = getConfig();
 
@@ -34,7 +39,7 @@ const main = async () => {
   // Get contracts and tokens of all projects
   const projectContracts: EthProjectAddressTokenAddress[] =
     await ethProjectAddressTokenAddressRepo.getAll();
-  const tokenAddresses = projectContracts.map((p) =>
+  const tokenAddresses: string[] = projectContracts.map((p) =>
     p.token_address.toLowerCase()
   );
 
@@ -45,6 +50,19 @@ const main = async () => {
     username: config.chUser,
     password: config.chPassword,
   });
+
+  // Query block time data from clickhouse
+  const blockTimeQuery = `SELECT number, timestamp FROM eth_block WHERE number = ${config.blockNumber} LIMIT 1`;
+  const blockTimeResult = await client.query({
+    query: blockTimeQuery,
+    format: "JSONEachRow",
+  });
+  const blockTime: BlockTime[] = await blockTimeResult.json();
+  if (blockTime.length === 0) {
+    throw new Error("Block not found");
+  }
+
+  const blockDate = new Date(blockTime[0].timestamp);
 
   // Query token addresses data from clickhouse
   const query = `SELECT eth as address, id, symbol, decimals 
@@ -64,15 +82,13 @@ const main = async () => {
     },
     format: "JSONEachRow",
   });
-
   const tokens: Token[] = await result.json();
-  // Create a map from array2 for faster lookups
+
   const decimalMap = tokens.reduce((acc, obj) => {
     acc[obj.address] = obj.decimals;
     return acc;
   }, {});
 
-  // Merge the arrays based on the "address" property
   const projectContractTokens: any[] = projectContracts.map((obj) => ({
     ...obj,
     decimal: decimalMap[obj.token_address.toLowerCase()],
@@ -107,7 +123,7 @@ const main = async () => {
     if (balance === undefined) {
       return {
         project_id: projectContracts[i].project_id,
-        date: new Date(), // TODO: calculate date
+        date: blockDate,
         address: projectContracts[i].address,
         token_address: projectContracts[i].token_address,
         balance: 0,
@@ -119,7 +135,7 @@ const main = async () => {
     );
     return {
       project_id: projectContracts[i].project_id,
-      date: new Date("2023-09-04"), // TODO: calculate date
+      date: blockDate,
       address: projectContracts[i].address,
       token_address: projectContracts[i].token_address,
       balance: +balanceFormatted,
