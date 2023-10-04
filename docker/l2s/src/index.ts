@@ -3,7 +3,10 @@ import multicallABI from "./config/abi/multical.json";
 import erc20ABI from "./config/abi/erc20.json";
 import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { Contract } from "@ethersproject/contracts";
-import { getMultipleContractMultipleData } from "./multicall";
+import {
+  getMultipleAddressEthBalance,
+  getMultipleContractMultipleData,
+} from "./multicall";
 import { ethers } from "ethers";
 import {
   EthProjectAddressTokenAddress,
@@ -28,6 +31,8 @@ type BlockTime = {
   timestamp: Date;
 };
 
+const CMC_ETH_ID = 1027;
+
 const main = async () => {
   const config = getConfig();
 
@@ -38,9 +43,11 @@ const main = async () => {
     new EthProjectTokenBalanceTimeseriesRepo();
 
   // Get contracts and tokens of all projects
-  const projectContracts: EthProjectAddressTokenAddress[] =
+  const escrowContracts: EthProjectAddressTokenAddress[] =
     await ethProjectAddressTokenAddressRepo.getAll();
-  const tokenAddresses: string[] = projectContracts.map((p) =>
+  const ethEscrowContracts: EthProjectAddressTokenAddress[] =
+    await ethProjectAddressTokenAddressRepo.getEthContract();
+  const tokenAddresses: string[] = escrowContracts.map((p) =>
     p.token_address.toLowerCase()
   );
 
@@ -53,36 +60,56 @@ const main = async () => {
   });
 
   // Query block time data from clickhouse
-  const blockTimeQuery = `SELECT number, timestamp FROM eth_block WHERE number = ${config.blockNumber} LIMIT 1`;
+  const blockTimeQuery = `SELECT number, timestamp FROM eth_block WHERE number = {number: Int64} LIMIT 1`;
   const blockTimeResult = await client.query({
     query: blockTimeQuery,
+    query_params: {
+      number: config.blockNumber,
+    },
     format: "JSONEachRow",
   });
   const blockTime: BlockTime[] = await blockTimeResult.json();
+
   if (blockTime.length === 0) {
     throw new Error("Block not found");
   }
 
   // Query token addresses data from clickhouse
-  const query = `SELECT h.id as id, h.timestamp as timestamp, close as price,
+  const tokenPriceQuery = `SELECT h.id as id, h.timestamp as timestamp, close as price,
                   a.eth as address, t.decimals as decimals
                   FROM cmc_historical h
                   JOIN cmc_address a ON h.id = a.id
                   JOIN cmc_eth_token t on t.address = a.eth
                   WHERE a.eth IN ({addresses: Array(TINYTEXT)})
-                  AND toDate(h.timestamp) =toDate({timestamp: timestamp})
+                  AND toDate(h.timestamp) = toDate({timestamp: timestamp})
                   LIMIT 1000`;
-
-  const result = await client.query({
-    query: query,
+  const tokenPriceResult = await client.query({
+    query: tokenPriceQuery,
     query_params: {
       addresses: tokenAddresses,
       timestamp: blockTime[0].timestamp,
     },
     format: "JSONEachRow",
   });
+  const tokenPrices: TokenPrice[] = await tokenPriceResult.json();
 
-  const tokenPrices: TokenPrice[] = await result.json();
+  const ethPriceQuery = `SELECT id, timestamp, close as price,'NATIVE_TOKEN' as address, 18 as decimals
+                          FROM cmc_historical
+                          WHERE id = {id: Int64}
+                          AND toDate(timestamp) = toDate({timestamp: timestamp})
+                          LIMIT 100`;
+  const ethPriceResult = await client.query({
+    query: ethPriceQuery,
+    query_params: {
+      id: CMC_ETH_ID,
+      timestamp: blockTime[0].timestamp,
+    },
+    format: "JSONEachRow",
+  });
+  const ethPrices: TokenPrice[] = await ethPriceResult.json();
+
+  // Close clickhouse client connection
+  await client.close();
 
   const decimalMap = tokenPrices.reduce((acc, obj) => {
     acc[obj.address] = obj.decimals;
@@ -94,10 +121,16 @@ const main = async () => {
     return acc;
   }, {});
 
-  const projectContractTokens: any[] = projectContracts.map((obj) => ({
+  const escrowContractTokens: any[] = escrowContracts.map((obj) => ({
     ...obj,
     decimal: decimalMap[obj.token_address.toLowerCase()],
     price: priceMap[obj.token_address.toLowerCase()],
+  }));
+
+  const ethEscrowContractTokens: any[] = ethEscrowContracts.map((obj) => ({
+    ...obj,
+    decimal: 18,
+    price: ethPrices[0].price,
   }));
 
   //  Initialize provider
@@ -110,48 +143,79 @@ const main = async () => {
   const CONTRACT_FUNCTION = "balanceOf";
   const contracts: Contract[] = [];
   const callInputs: string[][] = [];
+  const ethEscrow: string[] = [];
 
-  projectContractTokens.forEach((ctr) => {
+  escrowContractTokens.forEach((ctr) => {
     contracts.push(new Contract(ctr.token_address, erc20ABI, rpcProvider));
     callInputs.push([ctr.address]);
   });
+  ethEscrowContractTokens.forEach((ctr) => {
+    ethEscrow.push(ctr.address);
+  });
 
-  let tx = await getMultipleContractMultipleData(
+  const tx = await getMultipleContractMultipleData(
     contracts,
     multicallContract,
     CONTRACT_FUNCTION,
     config.blockNumber,
     callInputs
   );
+  // console.log("🚀 ~ file: index.ts:163 ~ main ~ tx:", tx);
+
+  const ethMulticallResult = await getMultipleAddressEthBalance(
+    ethEscrow,
+    config.blockNumber,
+    multicallContract
+  );
+  // console.log("🚀 ~ file: index.ts:169 ~ main ~ hihi:", multicallResult);
 
   // format the balance, store values in database
-  const balances: EthProjectTokenBalanceTimeseries[] = tx.map((balance, i) => {
-    if (balance === undefined) {
+  const escrowBalances: EthProjectTokenBalanceTimeseries[] = tx.map(
+    (balance, i) => {
+      if (balance === undefined) {
+        return {
+          project_id: escrowContractTokens[i].project_id,
+          date: new Date(blockTime[0].timestamp),
+          address: escrowContractTokens[i].address,
+          token_address: escrowContractTokens[i].token_address,
+          balance: 0,
+          price: 0,
+        };
+      }
+      const balanceFormatted = ethers.formatUnits(
+        balance.toString(),
+        contracts[i].decimals ?? 18
+      );
       return {
-        project_id: projectContracts[i].project_id,
+        project_id: escrowContractTokens[i].project_id,
         date: new Date(blockTime[0].timestamp),
-        address: projectContracts[i].address,
-        token_address: projectContracts[i].token_address,
-        balance: 0,
-        price: 0,
+        address: escrowContractTokens[i].address,
+        token_address: escrowContractTokens[i].token_address,
+        balance: +balanceFormatted,
+        price: priceMap[escrowContractTokens[i].token_address] ?? 0,
       };
     }
-    const balanceFormatted = ethers.formatUnits(
-      balance.toString(),
-      contracts[i].decimals ?? 18
-    );
-    return {
-      project_id: projectContracts[i].project_id,
-      date: new Date(blockTime[0].timestamp),
-      address: projectContracts[i].address,
-      token_address: projectContracts[i].token_address,
-      balance: +balanceFormatted,
-      price: priceMap[projectContracts[i].token_address] ?? 0,
-    };
-  });
+  );
 
-  // store value to DB
-  await ethProjectTokenBalanceTimeseriesRepo.insert(balances);
+  const ethEscrowBalances: EthProjectTokenBalanceTimeseries[] =
+    ethMulticallResult.map((balance, i) => {
+      const balanceFormatted = ethers.formatUnits(balance.toString(), "ether");
+      return {
+        project_id: ethEscrowContractTokens[i].project_id,
+        date: new Date(blockTime[0].timestamp),
+        address: ethEscrowContractTokens[i].address,
+        token_address: ethEscrowContractTokens[i].token_address,
+        balance: +balanceFormatted,
+        price: ethEscrowContractTokens[i].price ?? 0,
+      };
+    });
+
+  // insert value to Postgres
+  const insertPromises = [
+    ethProjectTokenBalanceTimeseriesRepo.insert(escrowBalances),
+    ethProjectTokenBalanceTimeseriesRepo.insert(ethEscrowBalances),
+  ];
+  await Promise.all(insertPromises);
 };
 
 main().catch(console.log);

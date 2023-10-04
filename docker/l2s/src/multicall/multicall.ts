@@ -85,3 +85,27 @@ async function fetchChunk(
   }
   return { results: returnData, blockNumber: resultsBlockNumber.toNumber() };
 }
+
+export async function getMultipleAddressEthBalance(
+  addresses: string[],
+  blockNumber: number,
+  multicallContract: Contract
+): Promise<any[]> {
+  // Prepare calls for the Multicall2 contract
+  const calls = addresses.map((address) => ({
+    target: multicallContract.address,
+    callData: multicallContract.interface.encodeFunctionData("getEthBalance", [
+      address,
+    ]),
+  }));
+
+  // Call the Multicall contract
+  const [, returnData] = await multicallContract.callStatic.aggregate(calls, {
+    blockTag: blockNumber,
+  });
+
+  const balances = returnData.map((data) =>
+    multicallContract.interface.decodeFunctionResult("getEthBalance", data)
+  );
+  return balances;
+}

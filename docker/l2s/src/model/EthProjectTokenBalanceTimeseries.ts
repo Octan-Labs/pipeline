@@ -35,7 +35,6 @@ export class EthProjectTokenBalanceTimeseriesRepo
       values
     );
     const { rows } = await pool.query(query);
-    pool.end();
     return rows;
   }
 }

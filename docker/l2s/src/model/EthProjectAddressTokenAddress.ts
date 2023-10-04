@@ -16,8 +16,16 @@ export class EthProjectAddressTokenAddressRepo
   implements IEthProjectAddressTokenAddressRepo
 {
   async getAll(): Promise<EthProjectAddressTokenAddress[]> {
-    const query = "SELECT * FROM eth_project_address_token_address";
-    const { rows } = await pool.query(query);
+    const query =
+      "SELECT * FROM eth_project_address_token_address WHERE token_address <> $1";
+    const { rows } = await pool.query(query, ["NATIVE_TOKEN"]);
+    return rows;
+  }
+
+  async getEthContract(): Promise<EthProjectAddressTokenAddress[]> {
+    const query =
+      "SELECT * FROM eth_project_address_token_address WHERE token_address = $1";
+    const { rows } = await pool.query(query, ["NATIVE_TOKEN"]);
     return rows;
   }
 
