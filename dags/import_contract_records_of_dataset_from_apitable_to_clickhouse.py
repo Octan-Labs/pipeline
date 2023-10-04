@@ -28,7 +28,7 @@ def _get_records(endpoint, api_table_token, ti):
     ti.xcom_push(key = 'api_table_records_of_dataset', value=value)
 
 with DAG(
-        dag_id='import_records_of_dataset_from_apitable_to_clickhouse',
+        dag_id='import_contract_records_of_dataset_from_apitable_to_clickhouse',
         default_args=default_args,
         schedule_interval=None,
         catchup=False,
@@ -38,7 +38,7 @@ with DAG(
     api_table_base_url = Variable.get("api_table_base_url")
 
     PythonOperator(
-        task_id = 'get_records_of_dataset',
+        task_id = 'get_contract_records_of_dataset',
         python_callable= _get_records,
         op_kwargs={
             'endpoint': "{api_table_base_url}/fusion/v1/datasheets/{dataset}/records?pageNum={pageNum}&pageSize={pageSize}"
@@ -59,7 +59,7 @@ with DAG(
                 VALUES {values}
             '''.format(
                     table_name = "{{ dag_run.conf['table_name'] }}",
-                    values = "{{ task_instance.xcom_pull(task_ids='get_records_of_dataset', key='api_table_records_of_dataset') }}"
+                    values = "{{ task_instance.xcom_pull(task_ids='get_contract_records_of_dataset', key='api_table_records_of_dataset') }}"
                 )
         ),
         clickhouse_conn_id="clickhouse_conn"
