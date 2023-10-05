@@ -117,7 +117,7 @@ with DAG(
         ),
         clickhouse_conn_id="clickhouse_conn"
     ) >> KubernetesPodOperator(
-        image='tuannm106/l2s-indexer:0.0.1',
+        image='tuannm106/l2s-indexer:0.0.2',
         env_vars=[
             k8s.V1EnvVar(
                 name='BLOCK_NUMBER',
