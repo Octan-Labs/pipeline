@@ -15,7 +15,6 @@ default_args = {
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
     # KubernetesPodOperator Defaults
-    'namespace': 'spark',
     'in_cluster': True,  # if set to true, will look in the cluster, if false, looks for file
     'get_logs': True,
     'is_delete_operator_pod': True
