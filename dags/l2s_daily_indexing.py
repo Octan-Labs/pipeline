@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
+from airflow.sensors.external_task import ExternalTaskSensor
 
 from datetime import datetime, timedelta
 
@@ -99,7 +100,12 @@ with DAG(
         ),
     ]
 
-    ClickHouseOperator(
+    ExternalTaskSensor(
+        task_id='waiting_for_eth_non_trace_daily_indexing',
+        external_dag_id='eth_daily_non_trace_indexing',
+        external_task_id='eth_non_trace_index',
+        failed_states=["failed"]
+    ) >> ClickHouseOperator(
         task_id='select_blocknumber',
         database='default',
         sql=(
