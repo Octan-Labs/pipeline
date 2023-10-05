@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow_clickhouse_plugin.operators.clickhouse_operator import ClickHouseOperator
 
 from datetime import datetime, timedelta
 
@@ -8,7 +9,7 @@ from kubernetes.client import models as k8s
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2020, 1, 1),
+    'start_date': datetime(2023, 1, 1),
     'retries': 1,
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
@@ -25,6 +26,7 @@ with DAG(
     description='Run l2s indexer daily',
     schedule="@daily",
     catchup=False,
+    max_active_runs=1,
     tags=['l2s']
 ) as dag:
 
@@ -71,17 +73,50 @@ with DAG(
             secret='l2s-indexer-secret',
             key='postgres-password'
         ),
+        Secret(
+            deploy_type='env',
+            deploy_target='CLICKHOUSE_HOST',
+            secret='l2s-indexer-secret',
+            key='clickhouse-host'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='CLICKHOUSE_PASSWORD',
+            secret='l2s-indexer-secret',
+            key='clickhouse-password'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='CLICKHOUSE_DATABASE',
+            secret='l2s-indexer-secret',
+            key='clickhouse-database'
+        ),
+        Secret(
+            deploy_type='env',
+            deploy_target='CLICKHOUSE_USER',
+            secret='l2s-indexer-secret',
+            key='clickhouse-user'
+        ),
     ]
 
-    env_vars = [
-        k8s.V1EnvVar(
-            name='CALCULATE_DATE',
-            value="{{ data_interval_start.subtract(days=1) | ds }}"),
-    ]
-
-    KubernetesPodOperator(
+    ClickHouseOperator(
+        task_id='select_blocknumber',
+        database='default',
+        sql=(
+            '''
+                SELECT MAX(number) FROM eth_block 
+                WHERE formatDateTime(timestamp ,'%Y-%m-%d') = '{{ data_interval_start.subtract(days=1) | ds }}'
+            '''
+            # result of the last query is pushed to XCom
+        ),
+        clickhouse_conn_id="clickhouse_conn"
+    ) >> KubernetesPodOperator(
         image='octanlabs/l2s-indexer:0.0.1',
-        env_vars=env_vars,
+        env_vars=[
+            k8s.V1EnvVar(
+                name='BLOCK_NUMBER',
+                value="{{ task_instance.xcom_pull(task_ids='select_blocknumber')[0][0] }}"),
+        ],
         secrets=secrets,
         container_resources=k8s.V1ResourceRequirements(),
         name='l2s_index',
