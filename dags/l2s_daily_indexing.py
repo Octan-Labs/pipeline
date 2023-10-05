@@ -100,12 +100,13 @@ with DAG(
         ),
     ]
 
-    ExternalTaskSensor(
-        task_id='waiting_for_eth_non_trace_daily_indexing',
-        external_dag_id='eth_daily_non_trace_indexing',
-        external_task_id='eth_non_trace_index',
-        failed_states=["failed"]
-    ) >> ClickHouseOperator(
+    # ExternalTaskSensor(
+    #     task_id='waiting_for_eth_non_trace_daily_indexing',
+    #     external_dag_id='eth_daily_non_trace_indexing',
+    #     external_task_id='eth_non_trace_index',
+    #     failed_states=["failed"]
+    # ) >> 
+    ClickHouseOperator(
         task_id='select_blocknumber',
         database='default',
         sql=(
