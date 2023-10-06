@@ -117,11 +117,16 @@ with DAG(
         ),
         clickhouse_conn_id="clickhouse_conn"
     ) >> KubernetesPodOperator(
-        image='tuannm106/l2s-indexer:0.0.2',
+        image='tuannm106/l2s-indexer:0.0.3',
         env_vars=[
             k8s.V1EnvVar(
                 name='BLOCK_NUMBER',
-                value="{{ task_instance.xcom_pull(task_ids='select_blocknumber')[0][0] }}"),
+                value="{{ task_instance.xcom_pull(task_ids='select_blocknumber')[0][0] }}"
+            ),
+            k8s.V1EnvVar(
+                name='DATE',
+                value="{{ data_interval_start.subtract(days=1) | ds }}"
+            ),
         ],
         secrets=secrets,
         container_resources=k8s.V1ResourceRequirements(),
