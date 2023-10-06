@@ -34,6 +34,7 @@ type BlockTime = {
 const CMC_ETH_ID = 1027;
 
 const main = async () => {
+  console.log("Start calculating l2 projects escrows value");
   const config = getConfig();
 
   // Initialize postgres repository
@@ -49,6 +50,7 @@ const main = async () => {
   const tokenAddresses: string[] = escrowContracts.map((p) =>
     p.token_address.toLowerCase()
   );
+  console.log("Get escrow contracts data from Postgres success");
 
   // Initialize clickhouse client
   const client = createClient({
@@ -91,6 +93,7 @@ const main = async () => {
     format: "JSONEachRow",
   });
   const tokenPrices: TokenPrice[] = await tokenPriceResult.json();
+  console.log("Get erc20 tokens historical price data from ClickHouse success");
 
   const ethPriceQuery = `SELECT id, timestamp, close as price,'NATIVE_TOKEN' as address, 18 as decimals
                           FROM cmc_historical
@@ -106,6 +109,8 @@ const main = async () => {
     format: "JSONEachRow",
   });
   const ethPrices: TokenPrice[] = await ethPriceResult.json();
+  console.log("Get eth historical price data from ClickHouse success");
+
   // Close clickhouse client connection
   await client.close();
 
@@ -151,6 +156,7 @@ const main = async () => {
     ethEscrow.push(ctr.address);
   });
 
+  console.log("Start getting tokens balance by multicall contract");
   const tx = await getMultipleContractMultipleData(
     contracts,
     multicallContract,
@@ -164,6 +170,8 @@ const main = async () => {
     config.blockNumber,
     multicallContract
   );
+
+  console.log("Get tokens balance by multicall contract success");
 
   // format the balance, store values in database
   const escrowBalances: EthProjectEscrowValue[] = tx.map((balance, i) => {
@@ -211,6 +219,7 @@ const main = async () => {
     ethProjectEscrowTimeseriesValueRepo.insert(ethEscrowValues),
   ];
   await Promise.all(insertPromises);
+  console.log("Insert escrow values to Postgres success. End!");
 };
 
 main().catch(console.log);
