@@ -15,6 +15,7 @@ default_args = {
     'retry_delay': timedelta(minutes=30),
     'depends_on_past': False,
     # KubernetesPodOperator Defaults
+    'namespace': 'spark',
     'in_cluster': True,  # if set to true, will look in the cluster, if false, looks for file
     'get_logs': True,
     'is_delete_operator_pod': True
@@ -99,13 +100,12 @@ with DAG(
         ),
     ]
 
-    # ExternalTaskSensor(
-    #     task_id='waiting_for_eth_non_trace_daily_indexing',
-    #     external_dag_id='eth_daily_non_trace_indexing',
-    #     external_task_id='eth_non_trace_index',
-    #     failed_states=["failed"]
-    # ) >> 
-    ClickHouseOperator(
+    ExternalTaskSensor(
+        task_id='waiting_for_eth_non_trace_daily_indexing',
+        external_dag_id='eth_daily_non_trace_indexing',
+        external_task_id='eth_non_trace_index',
+        failed_states=["failed"]
+    ) >> ClickHouseOperator(
         task_id='select_blocknumber',
         database='default',
         sql=(
@@ -117,16 +117,14 @@ with DAG(
         ),
         clickhouse_conn_id="clickhouse_conn"
     ) >> KubernetesPodOperator(
-        image='tuannm106/l2s-indexer:0.0.3',
+        image='octanlabs/l2s-indexer:0.0.1',
         env_vars=[
             k8s.V1EnvVar(
                 name='BLOCK_NUMBER',
-                value="{{ task_instance.xcom_pull(task_ids='select_blocknumber')[0][0] }}"
-            ),
+                value="{{ task_instance.xcom_pull(task_ids='select_blocknumber')[0][0] }}"),
             k8s.V1EnvVar(
-                name='DATE',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"
-            ),
+                name='BLOCK_DATE',
+                value="{{ data_interval_start.subtract(days=1) | ds }}"),
         ],
         secrets=secrets,
         container_resources=k8s.V1ResourceRequirements(),
