@@ -9,13 +9,13 @@ import {
 } from "./multicall";
 import { ethers } from "ethers";
 import {
-  EthProjectAddressTokenAddress,
-  EthProjectAddressTokenAddressRepo,
-} from "./model/EthProjectAddressTokenAddress";
+  EthProjectEscrow,
+  EthProjectEscrowRepo,
+} from "./model/EthProjectEscrow";
 
-import EthProjectTokenBalanceTimeseries, {
-  EthProjectTokenBalanceTimeseriesRepo,
-} from "./model/EthProjectTokenBalanceTimeseries";
+import EthProjectEscrowValue, {
+  EthProjectEscrowTimeseriesValueRepo,
+} from "./model/EthProjectEscrowTimeseries";
 import { createClient } from "@clickhouse/client";
 
 type TokenPrice = {
@@ -37,16 +37,15 @@ const main = async () => {
   const config = getConfig();
 
   // Initialize postgres repository
-  const ethProjectAddressTokenAddressRepo =
-    new EthProjectAddressTokenAddressRepo();
-  const ethProjectTokenBalanceTimeseriesRepo =
-    new EthProjectTokenBalanceTimeseriesRepo();
+  const ethProjectEscrowRepo = new EthProjectEscrowRepo();
+  const ethProjectEscrowTimeseriesValueRepo =
+    new EthProjectEscrowTimeseriesValueRepo();
 
   // Get contracts and tokens of all projects
-  const escrowContracts: EthProjectAddressTokenAddress[] =
-    await ethProjectAddressTokenAddressRepo.getAll();
-  const ethEscrowContracts: EthProjectAddressTokenAddress[] =
-    await ethProjectAddressTokenAddressRepo.getEthContract();
+  const escrowContracts: EthProjectEscrow[] =
+    await ethProjectEscrowRepo.getAll();
+  const ethEscrowContracts: EthProjectEscrow[] =
+    await ethProjectEscrowRepo.getEthContract();
   const tokenAddresses: string[] = escrowContracts.map((p) =>
     p.token_address.toLowerCase()
   );
@@ -87,7 +86,7 @@ const main = async () => {
     query: tokenPriceQuery,
     query_params: {
       addresses: tokenAddresses,
-      timestamp: blockTime[0].timestamp,
+      timestamp: config.blockDate,
     },
     format: "JSONEachRow",
   });
@@ -102,12 +101,11 @@ const main = async () => {
     query: ethPriceQuery,
     query_params: {
       id: CMC_ETH_ID,
-      timestamp: blockTime[0].timestamp,
+      timestamp: config.blockDate,
     },
     format: "JSONEachRow",
   });
   const ethPrices: TokenPrice[] = await ethPriceResult.json();
-
   // Close clickhouse client connection
   await client.close();
 
@@ -160,60 +158,57 @@ const main = async () => {
     config.blockNumber,
     callInputs
   );
-  // console.log("🚀 ~ file: index.ts:163 ~ main ~ tx:", tx);
 
   const ethMulticallResult = await getMultipleAddressEthBalance(
     ethEscrow,
     config.blockNumber,
     multicallContract
   );
-  // console.log("🚀 ~ file: index.ts:169 ~ main ~ hihi:", multicallResult);
 
   // format the balance, store values in database
-  const escrowBalances: EthProjectTokenBalanceTimeseries[] = tx.map(
-    (balance, i) => {
-      if (balance === undefined) {
-        return {
-          project_id: escrowContractTokens[i].project_id,
-          date: new Date(blockTime[0].timestamp),
-          address: escrowContractTokens[i].address,
-          token_address: escrowContractTokens[i].token_address,
-          balance: 0,
-          price: 0,
-        };
-      }
-      const balanceFormatted = ethers.formatUnits(
-        balance.toString(),
-        contracts[i].decimals ?? 18
-      );
+  const escrowBalances: EthProjectEscrowValue[] = tx.map((balance, i) => {
+    if (balance === undefined) {
       return {
         project_id: escrowContractTokens[i].project_id,
-        date: new Date(blockTime[0].timestamp),
+        date: new Date(config.blockDate),
         address: escrowContractTokens[i].address,
         token_address: escrowContractTokens[i].token_address,
-        balance: +balanceFormatted,
-        price: priceMap[escrowContractTokens[i].token_address] ?? 0,
+        balance: 0,
+        price: 0,
       };
     }
-  );
+    const balanceFormatted = ethers.formatUnits(
+      balance.toString(),
+      contracts[i].decimals ?? 18
+    );
+    return {
+      project_id: escrowContractTokens[i].project_id,
+      date: new Date(config.blockDate),
+      address: escrowContractTokens[i].address,
+      token_address: escrowContractTokens[i].token_address,
+      balance: +balanceFormatted,
+      price: priceMap[escrowContractTokens[i].token_address] ?? 0,
+    };
+  });
 
-  const ethEscrowBalances: EthProjectTokenBalanceTimeseries[] =
-    ethMulticallResult.map((balance, i) => {
+  const ethEscrowValues: EthProjectEscrowValue[] = ethMulticallResult.map(
+    (balance, i) => {
       const balanceFormatted = ethers.formatUnits(balance.toString(), "ether");
       return {
         project_id: ethEscrowContractTokens[i].project_id,
-        date: new Date(blockTime[0].timestamp),
+        date: new Date(config.blockDate),
         address: ethEscrowContractTokens[i].address,
         token_address: ethEscrowContractTokens[i].token_address,
         balance: +balanceFormatted,
         price: ethEscrowContractTokens[i].price ?? 0,
       };
-    });
+    }
+  );
 
   // insert value to Postgres
   const insertPromises = [
-    ethProjectTokenBalanceTimeseriesRepo.insert(escrowBalances),
-    ethProjectTokenBalanceTimeseriesRepo.insert(ethEscrowBalances),
+    ethProjectEscrowTimeseriesValueRepo.insert(escrowBalances),
+    ethProjectEscrowTimeseriesValueRepo.insert(ethEscrowValues),
   ];
   await Promise.all(insertPromises);
 };

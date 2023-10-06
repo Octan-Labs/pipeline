@@ -4,6 +4,7 @@ export interface Config {
   readonly rpcUrl: string;
   readonly multicallContractAddress: string;
   readonly blockNumber: number;
+  readonly blockDate: string;
   readonly chHost: string;
   readonly chDatabase: string;
   readonly chUser: string;
@@ -24,6 +25,7 @@ export function getConfig(): Config {
       "0xeefba1e63905ef1d7acba5a8513c70307c1ce441"
     ),
     blockNumber: +getEnv("BLOCK_NUMBER", ""),
+    blockDate: getEnv("BLOCK_DATE", ""),
     chHost: getEnv("CLICKHOUSE_HOST", ""),
     chDatabase: getEnv("CLICKHOUSE_DATABASE", ""),
     chUser: getEnv("CLICKHOUSE_USER", "default"),
