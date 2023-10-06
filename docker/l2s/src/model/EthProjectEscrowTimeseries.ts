@@ -19,9 +19,7 @@ interface IEthProjectEscrowTimeseriesValueRepo {
 export class EthProjectEscrowTimeseriesValueRepo
   implements IEthProjectEscrowTimeseriesValueRepo
 {
-  async insert(
-    ethProjectEscrowValue: EthProjectEscrowValue[]
-  ): Promise<EthProjectEscrowValue[]> {
+  async insert(ethProjectEscrowValue: EthProjectEscrowValue[]): Promise<any> {
     const values = ethProjectEscrowValue.map((obj) => [
       obj.project_id,
       obj.date,
@@ -31,9 +29,7 @@ export class EthProjectEscrowTimeseriesValueRepo
       obj.price,
     ]);
     const query = pgFormat(
-      `INSERT INTO eth_project_escrow_timeseries_values(
-        project_id, date, address, token_address, balance, price) 
-        VALUES %L RETURNING *`,
+      "INSERT INTO eth_project_escrow_timeseries_values(project_id, date, address, token_address, balance, price) VALUES %L",
       values
     );
     const { rows } = await pool.query(query);

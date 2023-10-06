@@ -126,13 +126,13 @@ const main = async () => {
 
   const escrowContractTokens: any[] = escrowContracts.map((obj) => ({
     ...obj,
-    decimal: decimalMap[obj.token_address.toLowerCase()],
+    decimals: decimalMap[obj.token_address.toLowerCase()],
     price: priceMap[obj.token_address.toLowerCase()],
   }));
 
   const ethEscrowContractTokens: any[] = ethEscrowContracts.map((obj) => ({
     ...obj,
-    decimal: 18,
+    decimals: 18,
     price: ethPrices[0].price,
   }));
 
@@ -187,8 +187,9 @@ const main = async () => {
     }
     const balanceFormatted = ethers.formatUnits(
       balance.toString(),
-      contracts[i].decimals ?? 18
+      +escrowContractTokens[i].decimals ?? 18
     );
+
     return {
       project_id: escrowContractTokens[i].project_id,
       date: new Date(config.blockDate),
