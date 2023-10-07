@@ -32,6 +32,7 @@ type BlockTime = {
 };
 
 const CMC_ETH_ID = 1027;
+const DEFAULT_DECIMAL = 18;
 
 const main = async () => {
   console.log("Start calculating l2 projects escrows value");
@@ -185,9 +186,10 @@ const main = async () => {
         price: 0,
       };
     }
+    const tokenDecimal = escrowContractTokens[i].decimals;
     const balanceFormatted = ethers.formatUnits(
       balance.toString(),
-      +escrowContractTokens[i].decimals ?? 18
+      tokenDecimal ? +tokenDecimal : DEFAULT_DECIMAL
     );
 
     return {
