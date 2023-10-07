@@ -76,6 +76,8 @@ const main = async () => {
     throw new Error("Block not found");
   }
 
+  const dateString = config.blockDate;
+
   // Query token addresses data from clickhouse
   const tokenPriceQuery = `SELECT h.id as id, h.timestamp as timestamp, close as price,
                   a.eth as address, t.decimals as decimals
@@ -83,13 +85,13 @@ const main = async () => {
                   JOIN cmc_address a ON h.id = a.id
                   JOIN cmc_eth_token t on t.address = a.eth
                   WHERE a.eth IN ({addresses: Array(TINYTEXT)})
-                  AND toDate(h.timestamp) = toDate({timestamp: timestamp})
+                  AND toDate(h.timestamp) = toDate({date: date})
                   LIMIT 1000`;
   const tokenPriceResult = await client.query({
     query: tokenPriceQuery,
     query_params: {
       addresses: tokenAddresses,
-      timestamp: config.blockDate,
+      date: dateString,
     },
     format: "JSONEachRow",
   });
@@ -99,13 +101,13 @@ const main = async () => {
   const ethPriceQuery = `SELECT id, timestamp, close as price,'NATIVE_TOKEN' as address, 18 as decimals
                           FROM cmc_historical
                           WHERE id = {id: Int64}
-                          AND toDate(timestamp) = toDate({timestamp: timestamp})
+                          AND toDate(timestamp) = toDate({date: date})
                           LIMIT 100`;
   const ethPriceResult = await client.query({
     query: ethPriceQuery,
     query_params: {
       id: CMC_ETH_ID,
-      timestamp: config.blockDate,
+      date: dateString,
     },
     format: "JSONEachRow",
   });
@@ -124,6 +126,8 @@ const main = async () => {
     acc[obj.address] = obj.price;
     return acc;
   }, {});
+
+  const priceTimestamp = ethPrices[0].timestamp;
 
   const escrowContractTokens: any[] = escrowContracts.map((obj) => ({
     ...obj,
@@ -179,7 +183,7 @@ const main = async () => {
     if (balance === undefined) {
       return {
         project_id: escrowContractTokens[i].project_id,
-        date: new Date(config.blockDate),
+        date: priceTimestamp,
         address: escrowContractTokens[i].address,
         token_address: escrowContractTokens[i].token_address,
         balance: 0,
@@ -194,7 +198,7 @@ const main = async () => {
 
     return {
       project_id: escrowContractTokens[i].project_id,
-      date: new Date(config.blockDate),
+      date: priceTimestamp,
       address: escrowContractTokens[i].address,
       token_address: escrowContractTokens[i].token_address,
       balance: +balanceFormatted,
@@ -207,7 +211,7 @@ const main = async () => {
       const balanceFormatted = ethers.formatUnits(balance.toString(), "ether");
       return {
         project_id: ethEscrowContractTokens[i].project_id,
-        date: new Date(config.blockDate),
+        date: priceTimestamp,
         address: ethEscrowContractTokens[i].address,
         token_address: ethEscrowContractTokens[i].token_address,
         balance: +balanceFormatted,
