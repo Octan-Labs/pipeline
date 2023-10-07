@@ -133,7 +133,7 @@ const main = async () => {
 
   const ethEscrowContractTokens: any[] = ethEscrowContracts.map((obj) => ({
     ...obj,
-    decimals: 18,
+    decimals: DEFAULT_DECIMAL,
     price: ethPrices[0].price,
   }));
 
