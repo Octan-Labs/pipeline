@@ -102,7 +102,7 @@ const main = async () => {
                           FROM cmc_historical
                           WHERE id = {id: Int64}
                           AND toDate(timestamp) = toDate({date: date})
-                          LIMIT 100`;
+                          LIMIT 1`;
   const ethPriceResult = await client.query({
     query: ethPriceQuery,
     query_params: {
