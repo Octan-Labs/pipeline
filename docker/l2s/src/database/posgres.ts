@@ -9,6 +9,7 @@ const pool = new Pool({
   database: config.dbDatabase,
   password: config.dbPassword,
   port: config.dbPort,
+  ssl: config.dbSslEnabled,
 });
 
 export default pool;
