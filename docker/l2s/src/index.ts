@@ -34,7 +34,6 @@ type BlockTime = {
 
 const CMC_ETH_ID = 1027;
 const DEFAULT_DECIMAL = 18;
-const DEFAULT_CHUNK_SIZE = 50;
 
 const main = async () => {
   try {
@@ -167,8 +166,8 @@ const main = async () => {
     });
 
     console.log("Start getting tokens balance by multicall contract");
-    const chunkContracts: any[][] = chunkArray(contracts, DEFAULT_CHUNK_SIZE);
-    const chunkCallInputs: any[][] = chunkArray(callInputs, DEFAULT_CHUNK_SIZE);
+    const chunkContracts: any[][] = chunkArray(contracts, config.chunkSize);
+    const chunkCallInputs: any[][] = chunkArray(callInputs, config.chunkSize);
     const tx: any[] = [];
 
     for (let i = 0; i < chunkContracts.length; i++) {

@@ -5,6 +5,7 @@ export interface Config {
   readonly multicallContractAddress: string;
   readonly blockNumber: number;
   readonly blockDate: string;
+  readonly chunkSize: number;
   readonly chHost: string;
   readonly chDatabase: string;
   readonly chUser: string;
@@ -26,6 +27,7 @@ export function getConfig(): Config {
     ),
     blockNumber: +getEnv("BLOCK_NUMBER", ""),
     blockDate: getEnv("BLOCK_DATE", ""),
+    chunkSize: +getEnv("DEFAULT_CHUNK_SIZE", "50"),
     chHost: getEnv("CLICKHOUSE_HOST", ""),
     chDatabase: getEnv("CLICKHOUSE_DATABASE", ""),
     chUser: getEnv("CLICKHOUSE_USER", "default"),
