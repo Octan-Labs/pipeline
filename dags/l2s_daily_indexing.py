@@ -100,12 +100,19 @@ with DAG(
         ),
     ]
 
-    ExternalTaskSensor(
+    waiting_for_eth_non_trace_daily_indexing = ExternalTaskSensor(
         task_id='waiting_for_eth_non_trace_daily_indexing',
         external_dag_id='eth_daily_non_trace_indexing',
         external_task_id='eth_non_trace_index',
         failed_states=["failed"]
-    ) >> ClickHouseOperator(
+    )
+    waiting_for_cmc_historical_price_daily_indexing = ExternalTaskSensor(
+        task_id='waiting_for_cmc_historical_price_daily_indexing',
+        external_dag_id='cmc_historical_price_daily_indexing',
+        external_task_id='import_from_s3_to_clickhouse',
+        failed_states=["failed"]
+    )
+    max_block_number_on_date = ClickHouseOperator(
         task_id='select_blocknumber',
         database='default',
         sql=(
@@ -116,7 +123,8 @@ with DAG(
             # result of the last query is pushed to XCom
         ),
         clickhouse_conn_id="clickhouse_conn"
-    ) >> KubernetesPodOperator(
+    ) 
+    l2s_indexing = KubernetesPodOperator(
         image='octanlabs/l2s-indexer:0.0.1',
         env_vars=[
             k8s.V1EnvVar(
@@ -132,3 +140,5 @@ with DAG(
         task_id='l2s_index',
         random_name_suffix=True,
     )
+
+    [waiting_for_eth_non_trace_daily_indexing, waiting_for_cmc_historical_price_daily_indexing] >> max_block_number_on_date >> l2s_indexing
