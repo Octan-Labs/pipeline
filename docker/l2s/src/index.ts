@@ -17,6 +17,7 @@ import EthProjectEscrowValue, {
   EthProjectEscrowTimeseriesValueRepo,
 } from "./model/EthProjectEscrowTimeseries";
 import { createClient } from "@clickhouse/client";
+import { chunkArray } from "./utils/array";
 
 type TokenPrice = {
   id: number;
@@ -33,6 +34,7 @@ type BlockTime = {
 
 const CMC_ETH_ID = 1027;
 const DEFAULT_DECIMAL = 18;
+const DEFAULT_CHUNK_SIZE = 50;
 
 const main = async () => {
   console.log("Start calculating l2 projects escrows value");
@@ -162,13 +164,21 @@ const main = async () => {
   });
 
   console.log("Start getting tokens balance by multicall contract");
-  const tx = await getMultipleContractMultipleData(
-    contracts,
-    multicallContract,
-    CONTRACT_FUNCTION,
-    config.blockNumber,
-    callInputs
-  );
+  const chunkContracts: any[][] = chunkArray(contracts, DEFAULT_CHUNK_SIZE);
+  const chunkCallInputs: any[][] = chunkArray(callInputs, DEFAULT_CHUNK_SIZE);
+  const tx: any[] = [];
+
+  for (let i = 0; i < chunkContracts.length; i++) {
+    const chunkTx = await getMultipleContractMultipleData(
+      chunkContracts[i],
+      multicallContract,
+      CONTRACT_FUNCTION,
+      config.blockNumber,
+      chunkCallInputs[i]
+    );
+    tx.push(chunkTx);
+  }
+  const contractData = [].concat.apply([], tx);
 
   const ethMulticallResult = await getMultipleAddressEthBalance(
     ethEscrow,
@@ -178,33 +188,34 @@ const main = async () => {
 
   console.log("Get tokens balance by multicall contract success");
 
-  // format the balance, store values in database
-  const escrowBalances: EthProjectEscrowValue[] = tx.map((balance, i) => {
-    if (balance === undefined) {
+  //format the balance, store values in database
+  const escrowBalances: EthProjectEscrowValue[] = contractData.map(
+    (balance, i) => {
+      if (balance === undefined) {
+        return {
+          project_id: escrowContractTokens[i].project_id,
+          date: priceTimestamp,
+          address: escrowContractTokens[i].address,
+          token_address: escrowContractTokens[i].token_address,
+          balance: 0,
+          price: 0,
+        };
+      }
+      const tokenDecimal = escrowContractTokens[i].decimals;
+      const balanceFormatted = ethers.formatUnits(
+        balance.toString(),
+        tokenDecimal ? +tokenDecimal : DEFAULT_DECIMAL
+      );
       return {
         project_id: escrowContractTokens[i].project_id,
         date: priceTimestamp,
         address: escrowContractTokens[i].address,
         token_address: escrowContractTokens[i].token_address,
-        balance: 0,
-        price: 0,
+        balance: +balanceFormatted,
+        price: priceMap[escrowContractTokens[i].token_address] ?? 0,
       };
     }
-    const tokenDecimal = escrowContractTokens[i].decimals;
-    const balanceFormatted = ethers.formatUnits(
-      balance.toString(),
-      tokenDecimal ? +tokenDecimal : DEFAULT_DECIMAL
-    );
-
-    return {
-      project_id: escrowContractTokens[i].project_id,
-      date: priceTimestamp,
-      address: escrowContractTokens[i].address,
-      token_address: escrowContractTokens[i].token_address,
-      balance: +balanceFormatted,
-      price: priceMap[escrowContractTokens[i].token_address] ?? 0,
-    };
-  });
+  );
 
   const ethEscrowValues: EthProjectEscrowValue[] = ethMulticallResult.map(
     (balance, i) => {
