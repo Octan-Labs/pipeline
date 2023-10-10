@@ -15,7 +15,7 @@ export interface Config {
   readonly dbUser: string;
   readonly dbPassword: string;
   readonly dbDatabase: string;
-  readonly rejectUnauthorized: boolean;
+  readonly sslEnabled: boolean;
 }
 
 export function getConfig(): Config {
@@ -38,9 +38,7 @@ export function getConfig(): Config {
     dbUser: getEnv("POSTGRES_USER", "postgres"),
     dbPassword: getEnv("POSTGRES_PASSWORD", "postgres"),
     dbDatabase: getEnv("POSTGRES_DATABASE", ""),
-    rejectUnauthorized: Boolean(
-      getEnv("POSTGRES_REJECT_UNAUTHORIZED", "false")
-    ),
+    sslEnabled: getEnv("POSTGRES_SSL_ENABLED", "false") === "true",
   };
 }
 
