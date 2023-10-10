@@ -10,12 +10,6 @@ export interface Config {
   readonly chDatabase: string;
   readonly chUser: string;
   readonly chPassword: string;
-  readonly dbHost: string;
-  readonly dbPort: number;
-  readonly dbUser: string;
-  readonly dbPassword: string;
-  readonly dbDatabase: string;
-  readonly dbSslEnabled: boolean;
 }
 
 export function getConfig(): Config {
@@ -33,12 +27,6 @@ export function getConfig(): Config {
     chDatabase: getEnv("CLICKHOUSE_DATABASE", ""),
     chUser: getEnv("CLICKHOUSE_USER", "default"),
     chPassword: getEnv("CLICKHOUSE_PASSWORD", ""),
-    dbHost: getEnv("POSTGRES_HOST", "localhost"),
-    dbPort: +getEnv("POSTGRES_PORT", "5432"),
-    dbUser: getEnv("POSTGRES_USER", "postgres"),
-    dbPassword: getEnv("POSTGRES_PASSWORD", "postgres"),
-    dbDatabase: getEnv("POSTGRES_DATABASE", ""),
-    dbSslEnabled: getEnv("POSTGRES_SSL_ENABLED", "true") === "true",
   };
 }
 

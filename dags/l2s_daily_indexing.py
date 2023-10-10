@@ -134,11 +134,8 @@ with DAG(
                 name='BLOCK_DATE',
                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
             k8s.V1EnvVar(
-                name='POSTGRES_SSL_ENABLED',
-                value='true'),
-            k8s.V1EnvVar(
                 name='PGSSLMODE',
-                value='require'),
+                value='no-verify'),
         ],
         secrets=secrets,
         container_resources=k8s.V1ResourceRequirements(),
