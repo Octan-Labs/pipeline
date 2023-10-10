@@ -46,31 +46,31 @@ with DAG(
         ),
         Secret(
             deploy_type='env',
-            deploy_target='POSTGRES_HOST',
+            deploy_target='PGHOST',
             secret='l2s-indexer-secret',
             key='postgres-host'
         ),
         Secret(
             deploy_type='env',
-            deploy_target='POSTGRES_PORT',
+            deploy_target='PGPORT',
             secret='l2s-indexer-secret',
             key='postgres-port'
         ),
         Secret(
             deploy_type='env',
-            deploy_target='POSTGRES_DATABASE',
+            deploy_target='PGDATABASE',
             secret='l2s-indexer-secret',
             key='postgres-database'
         ),
         Secret(
             deploy_type='env',
-            deploy_target='POSTGRES_USER',
+            deploy_target='PGUSER',
             secret='l2s-indexer-secret',
             key='postgres-user'
         ),
         Secret(
             deploy_type='env',
-            deploy_target='POSTGRES_PASSWORD',
+            deploy_target='PGPASSWORD',
             secret='l2s-indexer-secret',
             key='postgres-password'
         ),
