@@ -38,8 +38,9 @@ export function getConfig(): Config {
     dbUser: getEnv("POSTGRES_USER", "postgres"),
     dbPassword: getEnv("POSTGRES_PASSWORD", "postgres"),
     dbDatabase: getEnv("POSTGRES_DATABASE", ""),
-    rejectUnauthorized:
-      getEnv("POSTGRES_REJECT_UNAUTHORIZED", "false") === "true",
+    rejectUnauthorized: Boolean(
+      getEnv("POSTGRES_REJECT_UNAUTHORIZED", "false")
+    ),
   };
 }
 
