@@ -135,7 +135,7 @@ with DAG(
                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
             k8s.V1EnvVar(
                 name='POSTGRES_SSL_ENABLED',
-                value='false'),
+                value='true'),
             k8s.V1EnvVar(
                 name='PGSSLMODE',
                 value='no-verify'),
