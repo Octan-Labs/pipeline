@@ -136,6 +136,9 @@ with DAG(
             k8s.V1EnvVar(
                 name='POSTGRES_SSL_ENABLED',
                 value='false'),
+            k8s.V1EnvVar(
+                name='PGSSLMODE',
+                value='no-verify'),
         ],
         secrets=secrets,
         container_resources=k8s.V1ResourceRequirements(),
