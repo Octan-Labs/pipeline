@@ -125,7 +125,7 @@ with DAG(
         clickhouse_conn_id="clickhouse_conn"
     ) 
     l2s_indexing = KubernetesPodOperator(
-        image='octanlabs/l2s-indexer:0.0.2',
+        image='octanlabs/l2s-indexer:0.0.3',
         env_vars=[
             k8s.V1EnvVar(
                 name='BLOCK_NUMBER',
