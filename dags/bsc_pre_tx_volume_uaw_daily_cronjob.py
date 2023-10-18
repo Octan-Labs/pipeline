@@ -21,7 +21,7 @@
 #     'bsc_pre_tx_volume_uaw_daily_cronjob',
 #     default_args=default_args,
 #     description='Run bsc pre-tx & volume & UAW daily',
-#     schedule="@daily",
+#     schedule="10 0 * * *",
 #     catchup=False,
 #     tags=['bsc']
 # ) as dag:
@@ -54,8 +54,8 @@
 #             trigger_dag_id='pre_tx_and_volume_calculation',
 #             conf={
 #                 "base_path": base_path,
-#                 "start": "{{ data_interval_start.subtract(days=1) | ds }}",
-#                 "end": "{{ data_interval_start.subtract(days=1) | ds }}",
+#                 "start": "{{ data_interval_start | ds }}",
+#                 "end": "{{ data_interval_start | ds }}",
 #                 "name": "bsc",
 #                 "cmc_id": "1839"
 #             },
@@ -68,8 +68,8 @@
 #             trigger_dag_id='UAW_calculation',
 #             conf={
 #                 "base_path": base_path,
-#                 "start": "{{ data_interval_start.subtract(days=1) | ds }}",
-#                 "end": "{{ data_interval_start.subtract(days=1) | ds }}",
+#                 "start": "{{ data_interval_start | ds }}",
+#                 "end": "{{ data_interval_start | ds }}",
 #             },
 #             wait_for_completion=True,
 #             failed_states=["false"]

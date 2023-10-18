@@ -17,7 +17,7 @@
 # with DAG(
 #         dag_id='bsc_daily_non_trace_import_clickhouse',
 #         default_args=default_args,
-#         schedule="@daily",
+#         schedule="10 0 * * *",
 #         catchup=False,
 #         tags=['bsc', 'clickhouse']
 # ) as dag:
@@ -35,7 +35,7 @@
 #         conf={
 #             "table_name": "bsc_block",
 #             "schema": "blocks",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,
@@ -49,7 +49,7 @@
 #         conf={
 #             "table_name": "bsc_transaction",
 #             "schema": "transactions",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,
@@ -63,7 +63,7 @@
 #         conf={
 #             "table_name": "bsc_log",
 #             "schema": "logs",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,
@@ -77,7 +77,7 @@
 #         conf={
 #             "table_name": "bsc_token_transfer",
 #             "schema": "token_transfers",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,

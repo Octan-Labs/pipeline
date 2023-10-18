@@ -25,7 +25,7 @@ with DAG(
     'l2s_daily_indexing',
     default_args=default_args,
     description='Run l2s indexer daily',
-    schedule="@daily",
+    schedule="10 0 * * *",
     catchup=False,
     max_active_runs=1,
     tags=['l2s']
@@ -118,7 +118,7 @@ with DAG(
         sql=(
             '''
                 SELECT MAX(number) FROM eth_block 
-                WHERE formatDateTime(timestamp ,'%Y-%m-%d') = '{{ data_interval_start.subtract(days=1) | ds }}'
+                WHERE formatDateTime(timestamp ,'%Y-%m-%d') = '{{ data_interval_start | ds }}'
             '''
             # result of the last query is pushed to XCom
         ),
@@ -132,7 +132,7 @@ with DAG(
                 value="{{ task_instance.xcom_pull(task_ids='select_blocknumber')[0][0] }}"),
             k8s.V1EnvVar(
                 name='BLOCK_DATE',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
+                value="{{ data_interval_start | ds }}"),
             k8s.V1EnvVar(
                 name='PGSSLMODE',
                 value='no-verify'),

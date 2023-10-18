@@ -23,7 +23,7 @@ with DAG(
     "eth_daily_trace_indexing",
     default_args=default_args,
     description='Run eth indexer daily',
-    schedule="@daily",
+    schedule="10 0 * * *",
     catchup=False,
     max_active_runs=1,
     tags=['eth']
@@ -31,9 +31,9 @@ with DAG(
 
     env_vars = [
         k8s.V1EnvVar(
-            name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+            name='START', value="{{ data_interval_start | ds }}"),
         k8s.V1EnvVar(
-            name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+            name='END', value="{{ data_interval_start | ds }}"),
         k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'),
         k8s.V1EnvVar(name='ENTITY_TYPES', value='trace'),
     ]

@@ -23,7 +23,7 @@ default_args = {
 dag = DAG('cmc_historical_price_daily_indexing',
           default_args=default_args,
           description='Run cmc historical price daily indexer daily',
-          schedule="@daily",
+          schedule="10 0 * * *",
           max_active_runs=1,
           concurrency=1,
           tags=['cmc'],
@@ -31,9 +31,9 @@ dag = DAG('cmc_historical_price_daily_indexing',
 
 env_vars = [
     k8s.V1EnvVar(name='START_DATE',
-                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
+                 value="{{ data_interval_start | ds }}"),
     k8s.V1EnvVar(name='END_DATE',
-                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
+                 value="{{ data_interval_start | ds }}"),
     k8s.V1EnvVar(name='S3_REGION', value='ap-southeast-1')
 ]
 secrets = [
@@ -100,7 +100,7 @@ import_from_s3_to_clickhouse = ClickHouseOperator(
             base_s3_url=base_s3_url,
             access_key=access_key,
             secret_key=secret_key,
-            date="{{ data_interval_start.subtract(days=1) | ds }}"
+            date="{{ data_interval_start | ds }}"
         )
     ),
     clickhouse_conn_id="clickhouse_conn",

@@ -22,7 +22,7 @@ with DAG(
     'ronin_daily_non_trace_indexing',
     default_args=default_args,
     description='Run ronin indexer daily',
-    schedule="@daily",
+    schedule="10 0 * * *",
     catchup=False,
     tags=['ronin'],
     max_active_runs=1
@@ -58,16 +58,16 @@ with DAG(
     env_vars = [
             k8s.V1EnvVar(
                 name='START',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
+                value="{{ data_interval_start | ds }}"),
             k8s.V1EnvVar(
                 name='END',
-                value="{{ data_interval_start.subtract(days=1) | ds }}"),
+                value="{{ data_interval_start | ds }}"),
             k8s.V1EnvVar(
                 name='PARTITION_TO_HOUR',
                 value='false'),
             k8s.V1EnvVar(
                 name='EXPORT_BATCH_SIZE',
-                value='5'),
+                value='10'),
             k8s.V1EnvVar(
                 name='ENTITY_TYPES',
                 value='block, transaction, log')
