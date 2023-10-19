@@ -16,23 +16,9 @@ import {
 import EthProjectEscrowValue, {
   EthProjectEscrowTimeseriesValueRepo,
 } from "./model/EthProjectEscrowTimeseries";
-import { createClient } from "@clickhouse/client";
 import { chunkArray } from "./utils/array";
+import { BlockTime, TokenPrice, WarehouseClient } from "./database/clickhouse";
 
-type TokenPrice = {
-  id: number;
-  timestamp: Date;
-  price: number;
-  address: string;
-  decimals: number;
-};
-
-type BlockTime = {
-  number: number;
-  timestamp: Date;
-};
-
-const CMC_ETH_ID = 1027;
 const DEFAULT_DECIMAL = 18;
 
 const main = async () => {
@@ -56,70 +42,34 @@ const main = async () => {
     console.log("Get escrow contracts data from Postgres success");
 
     // Initialize clickhouse client
-    const client = createClient({
-      host: config.chHost,
-      database: config.chDatabase,
-      username: config.chUser,
-      password: config.chPassword,
-    });
+    const warehouseClient: WarehouseClient = new WarehouseClient(
+      config.chHost,
+      config.chDatabase,
+      config.chUser,
+      config.chPassword
+    );
 
-    // Query block time data from clickhouse
-    const blockTimeQuery = `SELECT number, timestamp FROM eth_block WHERE number = {number: Int64} LIMIT 1`;
-    const blockTimeResult = await client.query({
-      query: blockTimeQuery,
-      query_params: {
-        number: config.blockNumber,
-      },
-      format: "JSONEachRow",
-    });
-    const blockTime: BlockTime[] = await blockTimeResult.json();
-
+    const blockTime: BlockTime[] = await warehouseClient.getBlockTime(
+      config.blockNumber
+    );
     if (blockTime.length === 0) {
       throw new Error("Block not found");
     }
 
-    const dateString = config.blockDate;
-
-    // Query token addresses data from clickhouse
-    const tokenPriceQuery = `SELECT h.id as id, h.timestamp as timestamp, close as price,
-                  a.eth as address, t.decimals as decimals
-                  FROM cmc_historical h
-                  JOIN cmc_address a ON h.id = a.id
-                  JOIN cmc_eth_token t on t.address = a.eth
-                  WHERE a.eth IN ({addresses: Array(TINYTEXT)})
-                  AND toDate(h.timestamp) = toDate({date: date})
-                  LIMIT 1000`;
-    const tokenPriceResult = await client.query({
-      query: tokenPriceQuery,
-      query_params: {
-        addresses: tokenAddresses,
-        date: dateString,
-      },
-      format: "JSONEachRow",
-    });
-    const tokenPrices: TokenPrice[] = await tokenPriceResult.json();
+    const sDate = config.blockDate;
+    const tokenPrices: TokenPrice[] = await warehouseClient.getTokenPrices(
+      tokenAddresses,
+      sDate
+    );
     console.log(
       "Get erc20 tokens historical price data from ClickHouse success"
     );
 
-    const ethPriceQuery = `SELECT id, timestamp, close as price,'NATIVE_TOKEN' as address, 18 as decimals
-                          FROM cmc_historical
-                          WHERE id = {id: Int64}
-                          AND toDate(timestamp) = toDate({date: date})
-                          LIMIT 1`;
-    const ethPriceResult = await client.query({
-      query: ethPriceQuery,
-      query_params: {
-        id: CMC_ETH_ID,
-        date: dateString,
-      },
-      format: "JSONEachRow",
-    });
-    const ethPrices: TokenPrice[] = await ethPriceResult.json();
+    const ethPrices: TokenPrice[] = await warehouseClient.getEthPrice(sDate);
     console.log("Get eth historical price data from ClickHouse success");
 
     // Close clickhouse client connection
-    await client.close();
+    warehouseClient.close();
 
     const decimalMap = tokenPrices.reduce((acc, obj) => {
       acc[obj.address] = obj.decimals;
