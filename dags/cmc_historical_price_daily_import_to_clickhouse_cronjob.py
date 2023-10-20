@@ -16,7 +16,7 @@
 # with DAG(
 #         dag_id='cmc_historical_price_daily_import_to_clickhouse',
 #         default_args=default_args,
-#         schedule="@daily",
+#         schedule="10 0 * * *",
 #         catchup=False,
 #         tags=['cmc', 'clickhouse']
 # ) as dag:
@@ -52,7 +52,7 @@
 #                     base_s3_url = base_s3_url, 
 #                     access_key = access_key, 
 #                     secret_key = secret_key,
-#                     date = "{{ data_interval_start.subtract(days=1) | ds }}"
+#                     date = "{{ data_interval_start | ds }}"
 #                 )
 #         ),
 #         clickhouse_conn_id="clickhouse_conn"

@@ -22,14 +22,14 @@
 #     "eth_daily_indexing",
 #     default_args=default_args,
 #     description='Run eth indexer daily',
-#     schedule="@daily",
+#     schedule="10 0 * * *",
 #     catchup=False,
 #     tags=['eth']
 # ) as dag:
 
 #     env_vars = [
-#         k8s.V1EnvVar(name='START', value="{{ data_interval_start.subtract(days=1) | ds }}"),
-#         k8s.V1EnvVar(name='END', value="{{ data_interval_start.subtract(days=1) | ds }}"),
+#         k8s.V1EnvVar(name='START', value="{{ data_interval_start | ds }}"),
+#         k8s.V1EnvVar(name='END', value="{{ data_interval_start | ds }}"),
 #         k8s.V1EnvVar(name='PARTITION_TO_HOUR', value='false'), 
 #         k8s.V1EnvVar(name='ENTITY_TYPES', value='block, transaction, log, token_transfer, trace, contract, token')
 #     ]

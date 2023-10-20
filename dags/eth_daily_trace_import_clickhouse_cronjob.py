@@ -17,7 +17,7 @@
 # with DAG(
 #         dag_id='eth_daily_trace_import_clickhouse',
 #         default_args=default_args,
-#         schedule="@daily",
+#         schedule="10 0 * * *",
 #         catchup=False,
 #         tags=['eth', 'clickhouse']
 # ) as dag:
@@ -36,7 +36,7 @@
 #         conf={
 #             "table_name": "ethereum_trace",
 #             "schema": "traces",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,
@@ -50,7 +50,7 @@
 #         conf={
 #             "table_name": "ethereum_token",
 #             "schema": "tokens",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,
@@ -64,7 +64,7 @@
 #         conf={
 #             "table_name": "ethereum_contract",
 #             "schema": "contracts",
-#             "date": "{{ data_interval_start.subtract(days=1) | ds }}",
+#             "date": "{{ data_interval_start | ds }}",
 #             "base_s3_url": base_s3_url
 #         },
 #         reset_dag_run=True,

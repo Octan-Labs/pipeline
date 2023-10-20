@@ -22,7 +22,7 @@
 #     'bsc_daily_indexing',
 #     default_args=default_args,
 #     description='Run bsc indexer daily',
-#     schedule="@daily",
+#     schedule="10 0 * * *",
 #     catchup=False,
 #     max_active_runs=1,
 #     concurrency=3,
@@ -68,10 +68,10 @@
 #         env_vars = [
 #             k8s.V1EnvVar(
 #                 name='START',
-#                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
+#                 value="{{ data_interval_start | ds }}"),
 #             k8s.V1EnvVar(
 #                 name='END',
-#                 value="{{ data_interval_start.subtract(days=1) | ds }}"),
+#                 value="{{ data_interval_start | ds }}"),
 #             k8s.V1EnvVar(
 #                 name='JOB_COMPLETION_INDEX',
 #                 value=str(hour)),
@@ -92,7 +92,7 @@
 #     env_vars = [
 #         k8s.V1EnvVar(
 #             name='DATE',
-#             value="{{ data_interval_start.subtract(days=1) | ds }}"),
+#             value="{{ data_interval_start | ds }}"),
 #         k8s.V1EnvVar(
 #             name='ENTITIES',
 #             value='block, transaction, log, token_transfer, trace, contract, token')
