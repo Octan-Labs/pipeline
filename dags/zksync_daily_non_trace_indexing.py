@@ -24,6 +24,7 @@ with DAG(
     description='Run zksync indexer daily',
     schedule="10 0 * * *",
     catchup=False,
+    max_active_runs=1,
     tags=['zksync']
 ) as dag:
 
