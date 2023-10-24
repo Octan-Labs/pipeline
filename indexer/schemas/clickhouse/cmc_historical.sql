@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS cmc_historical (
     timestamp DateTime,
 )
 
-ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{shard}/{database}/{table}', '{replica}')
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}')
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (id, rank, timestamp)
-SETTINGS index_granularity = 8192, storage_policy = 's3';
+SETTINGS index_granularity = 8192
