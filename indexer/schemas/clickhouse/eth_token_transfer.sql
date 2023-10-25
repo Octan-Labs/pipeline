@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS eth_token_transfer
     block_number UInt64,
     block_timestamp DateTime,
     block_hash FixedString(66)
-)
-    ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{shard}/{database}/{table}', '{replica}')
-    ORDER BY (block_number, transaction_hash, log_index)
-    PARTITION BY toYYYYMM(block_timestamp)
-    SETTINGS index_granularity = 8192, storage_policy = 's3';
+) 
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}') 
+PARTITION BY toYYYYMM(block_timestamp) 
+ORDER BY (block_number, transaction_hash, log_index)
+SETTINGS index_granularity = 8192

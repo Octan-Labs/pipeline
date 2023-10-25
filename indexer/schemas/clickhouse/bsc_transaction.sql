@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS bsc_transaction
     receipt_root Nullable(String),
     receipt_status UInt8,
     receipt_effective_gas_price Nullable(UInt256)
-)
-    ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{shard}/{database}/{table}', '{replica}')
-    ORDER BY (block_number, hash, transaction_index)
-    PARTITION BY toYYYYMM(block_timestamp)
-    SETTINGS index_granularity = 8192, storage_policy = 's3';
+) 
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}') 
+PARTITION BY toYYYYMM(block_timestamp) 
+ORDER BY (block_number, hash, transaction_index)
+SETTINGS index_granularity = 8192

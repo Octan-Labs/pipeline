@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS eth_block
     timestamp DateTime,
     transaction_count UInt64,
     base_fee_per_gas Nullable(UInt256)
-)
-    ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{shard}/{database}/{table}', '{replica}')
-    ORDER BY (number)
-    PARTITION BY toYYYYMM(timestamp)
-    SETTINGS index_granularity = 8192, storage_policy = 's3';
+) 
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}') 
+PARTITION BY toYYYYMM(timestamp) 
+ORDER BY number SETTINGS index_granularity = 8192
