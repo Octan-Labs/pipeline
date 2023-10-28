@@ -1,4 +1,5 @@
-# **Pipeline for Octan Network**
+# **Pipeline for Octan Network**  
+The pipeline collects data from multiple blockchains, processes them, then provides as data-inputs for [reputation ranking system](https://github.com/Octan-Labs/Reputation-scoring) and warehouse to build an onchain analytics platform.
 ---------------------------------
 
 ![architecture](docs/architecture.png)
