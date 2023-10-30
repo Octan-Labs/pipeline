@@ -18,6 +18,8 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
         + [X] s3
         + [X] local
         + [X] other filesystem follow fsspec (not tested, but highly compatible)
+        + [X] clickhouse
+        + [ ] starrocks
     + streaming sink:
         + [X] kafka
         + [X] kinesis
@@ -27,6 +29,7 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
         + [X] parity traces
         + [X] geth traces (only export)
 - scheduler/monitor: airflow
+- labeling engine: graphql
 - graph processing
     + [X] graphframes (deprecated)
     + [X] graphscope
@@ -36,7 +39,6 @@ Fork from [blockchain-etl](https://github.com/blockchain-etl/ethereum-etl)
     + [X] contract classification
     + [X] in degree
     + [X] pagerank
-    + [ ] labeling
     + [ ] fraud detection
     + [ ] bot detection
 
