@@ -1,4 +1,4 @@
-import pool from "../database/posgres";
+import pool from "../pool";
 
 export interface EthProjectEscrow {
   project_id: string;

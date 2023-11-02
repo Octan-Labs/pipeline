@@ -6,17 +6,16 @@ import { Contract } from "@ethersproject/contracts";
 import {
   getMultipleAddressEthBalance,
   getMultipleContractMultipleData,
-} from "./multicall";
+} from "./services/multicall";
 import { ethers } from "ethers";
 import {
   EthProjectEscrow,
   EthProjectEscrowRepo,
-} from "./model/EthProjectEscrow";
-
-import EthProjectEscrowValue, {
   EthProjectEscrowTimeseriesValueRepo,
-} from "./model/EthProjectEscrowTimeseries";
-import { createClient } from "@clickhouse/client";
+  EthProjectEscrowValue,
+} from "./database/postgres";
+import { ClickHouseService } from "./database/clickhouse";
+
 import { chunkArray } from "./utils/array";
 
 type TokenPrice = {
@@ -32,7 +31,6 @@ type BlockTime = {
   timestamp: Date;
 };
 
-const CMC_ETH_ID = 1027;
 const DEFAULT_DECIMAL = 18;
 
 const main = async () => {
@@ -55,71 +53,37 @@ const main = async () => {
     );
     console.log("Get escrow contracts data from Postgres success");
 
-    // Initialize clickhouse client
-    const client = createClient({
-      host: config.chHost,
-      database: config.chDatabase,
-      username: config.chUser,
-      password: config.chPassword,
-    });
+    const clickHouseService = new ClickHouseService(
+      config.chHost,
+      config.chDatabase,
+      config.chUser,
+      config.chPassword
+    );
 
-    // Query block time data from clickhouse
-    const blockTimeQuery = `SELECT number, timestamp FROM eth_block WHERE number = {number: Int64} LIMIT 1`;
-    const blockTimeResult = await client.query({
-      query: blockTimeQuery,
-      query_params: {
-        number: config.blockNumber,
-      },
-      format: "JSONEachRow",
-    });
-    const blockTime: BlockTime[] = await blockTimeResult.json();
+    const blockTime: BlockTime[] = await clickHouseService.getBlockTime(
+      config.blockNumber
+    );
 
     if (blockTime.length === 0) {
       throw new Error("Block not found");
     }
 
     const dateString = config.blockDate;
-
-    // Query token addresses data from clickhouse
-    const tokenPriceQuery = `SELECT h.id as id, h.timestamp as timestamp, close as price,
-                  a.eth as address, t.decimals as decimals
-                  FROM cmc_historical h
-                  JOIN cmc_address a ON h.id = a.id
-                  JOIN cmc_eth_token t on t.address = a.eth
-                  WHERE a.eth IN ({addresses: Array(TINYTEXT)})
-                  AND toDate(h.timestamp) = toDate({date: date})
-                  LIMIT 1000`;
-    const tokenPriceResult = await client.query({
-      query: tokenPriceQuery,
-      query_params: {
-        addresses: tokenAddresses,
-        date: dateString,
-      },
-      format: "JSONEachRow",
-    });
-    const tokenPrices: TokenPrice[] = await tokenPriceResult.json();
+    const tokenPrices: TokenPrice[] = await clickHouseService.getTokenPrices(
+      tokenAddresses,
+      dateString
+    );
     console.log(
       "Get erc20 tokens historical price data from ClickHouse success"
     );
 
-    const ethPriceQuery = `SELECT id, timestamp, close as price,'NATIVE_TOKEN' as address, 18 as decimals
-                          FROM cmc_historical
-                          WHERE id = {id: Int64}
-                          AND toDate(timestamp) = toDate({date: date})
-                          LIMIT 1`;
-    const ethPriceResult = await client.query({
-      query: ethPriceQuery,
-      query_params: {
-        id: CMC_ETH_ID,
-        date: dateString,
-      },
-      format: "JSONEachRow",
-    });
-    const ethPrices: TokenPrice[] = await ethPriceResult.json();
+    const ethPrices: TokenPrice[] = await clickHouseService.getEthPrice(
+      dateString
+    );
     console.log("Get eth historical price data from ClickHouse success");
 
     // Close clickhouse client connection
-    await client.close();
+    await clickHouseService.close();
 
     const decimalMap = tokenPrices.reduce((acc, obj) => {
       acc[obj.address] = obj.decimals;
@@ -244,7 +208,6 @@ const main = async () => {
     await Promise.all(insertPromises);
     console.log("Insert escrow values to Postgres success. End!");
   } catch (error) {
-    // Handle the error
     console.error("Error:", error.message);
     console.log("Retrying in 30 seconds...");
 

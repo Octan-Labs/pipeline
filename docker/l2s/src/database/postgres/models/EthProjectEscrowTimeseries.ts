@@ -1,7 +1,7 @@
-import pool from "../database/posgres";
+import pool from "../pool";
 const pgFormat = require("pg-format");
 
-export default class EthProjectEscrowValue {
+export interface EthProjectEscrowValue {
   project_id: string;
   date: Date;
   address: string;
