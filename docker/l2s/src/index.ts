@@ -3,10 +3,17 @@ import {
   EthProjectEscrow,
   EthProjectEscrowRepo,
   EthProjectEscrowTimeseriesValueRepo,
+  L2MintedTokenRepo,
 } from "./database/postgres";
 import { ClickHouseService } from "./database/clickhouse/client";
 import { BalanceCalcService } from "./services/BalanceCalcService";
 import { BalanceFormatterService } from "./services/BalanceFormatterService";
+import { TotalSupplyCalcService } from "./services/TotalSupplyCalcService";
+import {
+  L2MintedTokenTimeseriesValueRepo,
+  L2MintedTokenValue,
+} from "./database/postgres/models/L2MintedTokenTimeseries";
+import { ethers } from "ethers";
 
 type TokenPrice = {
   id: number;
@@ -22,11 +29,22 @@ type BlockTime = {
 };
 
 const DEFAULT_DECIMAL = 18;
+const USDC_DECIMAL = 6;
+const USDC_PRICE = 1;
 
-const main = async () => {
+async function calculateCanonical(
+  chHost: string,
+  chDatabase: string,
+  chUser: string,
+  chPassword: string,
+  blockNumber: number,
+  blockDate: string,
+  rpcUrl: string,
+  multicallAddr: string,
+  chunkSize: number = 100
+) {
   try {
     console.log("Start calculating l2 projects escrows value");
-    const config = getConfig();
 
     // Initialize postgres repository
     const ethProjectEscrowRepo = new EthProjectEscrowRepo();
@@ -45,20 +63,20 @@ const main = async () => {
     console.log("Get escrow contracts data from Postgres success");
 
     const clickHouseService = new ClickHouseService(
-      config.chHost,
-      config.chDatabase,
-      config.chUser,
-      config.chPassword
+      chHost,
+      chDatabase,
+      chUser,
+      chPassword
     );
 
     const blockTime: BlockTime[] = await clickHouseService.getBlockTime(
-      config.blockNumber
+      blockNumber
     );
     if (blockTime.length === 0) {
       throw new Error("Block not found");
     }
 
-    const dateString = config.blockDate;
+    const dateString = blockDate;
     const tokenPrices: TokenPrice[] = await clickHouseService.getTokenPrices(
       tokenAddresses,
       dateString
@@ -108,19 +126,16 @@ const main = async () => {
     });
 
     console.log("Start getting tokens balance by multicall contract");
-    const balanceCalcService = new BalanceCalcService(
-      config.rpcUrl,
-      config.multicallContractAddress
-    );
+    const balanceCalcService = new BalanceCalcService(rpcUrl, multicallAddr);
     const contractData = await balanceCalcService.calculateTokensBalance(
       tokenAddresses,
       callInputs,
-      config.chunkSize,
-      config.blockNumber
+      chunkSize,
+      blockNumber
     );
     const ethMulticallResult = await balanceCalcService.calculateEthBalance(
       ethEscrow,
-      config.blockNumber
+      blockNumber
     );
     console.log("Get tokens balance by multicall contract success");
 
@@ -153,8 +168,69 @@ const main = async () => {
     await new Promise((resolve) => setTimeout(resolve, 30000));
 
     // Retry the main function
-    await main();
+    await calculateCanonical(
+      chHost,
+      chDatabase,
+      chUser,
+      chPassword,
+      blockNumber,
+      blockDate,
+      rpcUrl,
+      multicallAddr,
+      chunkSize
+    );
   }
-};
+}
+
+async function calculateUSDCNativeMinted(blockDate: string) {
+  console.log("Start calculating l2 USDC minted token value");
+  const l2MintedTokenValues: L2MintedTokenValue[] = [];
+  const l2MintedTokenRepo = new L2MintedTokenRepo();
+  const l2MintedTokens = await l2MintedTokenRepo.getAll();
+
+  for (let token of l2MintedTokens) {
+    const totalSupply = await new TotalSupplyCalcService(
+      token.rpc_url
+    ).calculateTotalSupply(token.token_address);
+    const supplyFormatted = ethers.formatUnits(
+      totalSupply.toString(),
+      USDC_DECIMAL
+    );
+
+    const l2MintedTokenValue: L2MintedTokenValue = {
+      date: new Date(blockDate),
+      project_id: token.project_id,
+      token_address: token.token_address,
+      amount: +supplyFormatted,
+      price: USDC_PRICE,
+    };
+
+    l2MintedTokenValues.push(l2MintedTokenValue);
+  }
+
+  const l2MintedTokenValueRepo = new L2MintedTokenTimeseriesValueRepo();
+  await l2MintedTokenValueRepo.insert(l2MintedTokenValues);
+  console.log("Insert l2 USDC minted token values to Postgres success. End!");
+}
+
+async function main() {
+  try {
+    const config = getConfig();
+    await calculateCanonical(
+      config.chHost,
+      config.chDatabase,
+      config.chUser,
+      config.chPassword,
+      config.blockNumber,
+      config.blockDate,
+      config.rpcUrl,
+      config.multicallContractAddress,
+      config.chunkSize
+    );
+    await calculateUSDCNativeMinted(config.blockDate);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
 
 main();
