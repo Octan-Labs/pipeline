@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"os"
 	"time"
 
@@ -15,28 +16,43 @@ import (
 	"google.golang.org/api/option"
 )
 
-type GasSpentRow struct {
-	Date     string `bigquery:"date"`
-	GasSpent int64  `bigquery:"gas_spent"`
+type TransactionDataRow struct {
+	Date    string `bigquery:"date"`
+	Txn     int64  `bigquery:"txn"`
+	Uaw     int64  `bigquery:"uaw"`
+	GasUsed int64  `bigquery:"gas_used"`
+	Volume  string `bigquery:"volume"`
 }
 
-type L2GasSpentTimeseriesValue struct {
+type L2TransactionTimeseriesValue struct {
 	Date      time.Time
 	ProjectId string
-	GasSpent  int64
+	Txn       int64
+	GasUsed   int64
+	Uaw       int64
+	Volume    float64
 }
 
 const OP_LABEL_ID = "recuGSDmg9OO6"
 
-func queryDailyGasSpent(ctx context.Context, client *bigquery.Client, beginDate string, endDate string) (*bigquery.RowIterator, error) {
+func queryTransactionData(ctx context.Context, client *bigquery.Client, beginDate string, endDate string) (*bigquery.RowIterator, error) {
 	query := client.Query(
-		`SELECT CAST(DATE(blocks.block_timestamp) as STRING) AS date, SUM(gas_used) AS gas_spent
-                FROM ` + "`bigquery-public-data.goog_blockchain_optimism_mainnet_us.blocks`" + ` AS blocks
+		`SELECT CAST(DATE(blocks.block_timestamp) as STRING) AS date,
+		SUM(blocks.gas_used) AS gas_used,
+		COUNT(transactions.block_hash) as txn,
+		COUNT(DISTINCT transactions.from_address) as uaw,
+		CAST(SUM(transactions.value.bignumeric_value) AS STRING) as volume
+            FROM (
+				SELECT *
+				FROM ` + "`bigquery-public-data.goog_blockchain_optimism_mainnet_us.blocks`" + `
 				WHERE gas_used > 0
-				AND DATE(blocks.block_timestamp) BETWEEN @begin_date AND @end_date
-				GROUP BY date
-                ORDER BY date ASC
-                LIMIT 100;`)
+				AND DATE(block_timestamp) BETWEEN @begin_date AND @end_date
+			) AS blocks 
+			JOIN ` + "`bigquery-public-data.goog_blockchain_optimism_mainnet_us.transactions`" + `AS transactions
+			ON blocks.block_hash = transactions.block_hash
+			GROUP BY date
+            ORDER BY date ASC
+            LIMIT 1000;`)
 	query.Parameters = []bigquery.QueryParameter{
 		{
 			Name:  "begin_date",
@@ -61,7 +77,7 @@ func saveResult(connString string, w io.Writer, iter *bigquery.RowIterator) erro
 	insertedRecord := 0
 
 	for {
-		var row GasSpentRow
+		var row TransactionDataRow
 		err := iter.Next(&row)
 		if err == iterator.Done {
 			fmt.Fprintf(w, "inserted %d daily gas spent records to Postgres\n", insertedRecord)
@@ -76,10 +92,13 @@ func saveResult(connString string, w io.Writer, iter *bigquery.RowIterator) erro
 			return fmt.Errorf("error parsing time string: %w", err)
 		}
 
-		l2GasSpent := &L2GasSpentTimeseriesValue{
+		l2GasSpent := &L2TransactionTimeseriesValue{
 			Date:      date,
 			ProjectId: OP_LABEL_ID,
-			GasSpent:  row.GasSpent,
+			GasUsed:   row.GasUsed,
+			Txn:       row.Txn,
+			Uaw:       row.Uaw,
+			Volume:    weiToEth(row.Volume),
 		}
 		_, err = db.Model(l2GasSpent).Insert()
 		if err != nil {
@@ -87,7 +106,23 @@ func saveResult(connString string, w io.Writer, iter *bigquery.RowIterator) erro
 		}
 		insertedRecord += 1
 	}
+}
 
+// Convert the Wei value as a big.Rat to ETH as a float64
+func weiToEth(weiValue string) float64 {
+	// Convert the Wei value to ETH as a float64
+	weiBigInt, success := new(big.Int).SetString(weiValue, 10)
+	if !success {
+		log.Fatal("Failed to parse Wei value")
+	}
+
+	// Define the ETH to Wei conversion ratio (1 ETH = 10^18 Wei)
+	ethToWeiRatio := new(big.Float).SetInt64(1e18)
+
+	// Calculate ETH value as a float64
+	ethFloat := new(big.Float).Quo(new(big.Float).SetInt(weiBigInt), ethToWeiRatio)
+	ethFloat64, _ := ethFloat.Float64()
+	return ethFloat64
 }
 
 func main() {
@@ -127,7 +162,7 @@ func main() {
 	}
 	defer client.Close()
 
-	rows, err := queryDailyGasSpent(ctx, client, beginDate, endDate)
+	rows, err := queryTransactionData(ctx, client, beginDate, endDate)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -135,4 +170,5 @@ func main() {
 	if err := saveResult(pgUrl, os.Stdout, rows); err != nil {
 		log.Fatal(err)
 	}
+	os.Exit(0)
 }
