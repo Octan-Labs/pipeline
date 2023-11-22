@@ -26,6 +26,7 @@ with DAG(
     description='Run bsc indexer daily',
     schedule="10 0 * * *",
     catchup=False,
+    max_active_runs=1,
     tags=['bsc']
 ) as dag:
 
